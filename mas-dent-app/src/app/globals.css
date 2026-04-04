@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #14B8A6;
+  --color-primary-dark: #0F766E;
+  --color-primary-light: #5EEAD4;
+  --color-accent: #D4AF37;
+  --color-background-light: #F8FAFC;
+  --color-background-dark: #0A0A0A;
+  --color-surface: #131313;
+  --color-surface-light: #222222;
+  --font-display: var(--font-inter), sans-serif;
+  --font-arabic: var(--font-cairo), sans-serif;
+  --radius-DEFAULT: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 2rem;
+  --radius-2xl: 2.5rem;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: inherit;
+    background-color: var(--color-background-dark);
+    color: #F8FAFC;
+    background-image: 
+      radial-gradient(circle at 0% 0%, rgba(20, 184, 166, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 100% 100%, rgba(20, 184, 166, 0.1) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 60%);
+    background-attachment: fixed;
+  }
+
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"] {
+    @apply cursor-pointer;
+  }
+}
+
+@utility material-symbols-outlined {
+  font-size: 24px;
+}
+
+@utility glass {
+  background: rgba(19, 19, 19, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@utility glass-card {
+  background: linear-gradient(145deg, rgba(34, 34, 34, 0.6) 0%, rgba(19, 19, 19, 0.4) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+@utility text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, #5EEAD4, #14B8A6);
+}
+
+@utility text-gradient-gold {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, #FDE047, #D4AF37);
+}
