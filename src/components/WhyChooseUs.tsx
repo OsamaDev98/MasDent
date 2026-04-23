@@ -49,7 +49,7 @@ export default function WhyChooseUs() {
             {/* Floating experience badge */}
             <motion.div
               animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 4, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
               className={`absolute -bottom-5 ${isRtl ? '-right-4' : '-left-4'} glass-card rounded-2xl px-6 py-5 shadow-xl shadow-slate-900/10 hidden md:block`}
             >
               <p className="text-4xl font-black text-gradient leading-none">{t('why.years')}</p>
@@ -59,7 +59,7 @@ export default function WhyChooseUs() {
             {/* Floating satisfied-patients badge */}
             <motion.div
               animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
               className={`absolute top-6 ${isRtl ? '-left-4' : '-right-4'} glass-card rounded-2xl px-5 py-3.5 shadow-xl shadow-slate-900/10 hidden md:flex items-center gap-3`}
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0a4f49] to-[#14b8a6] flex items-center justify-center shrink-0">

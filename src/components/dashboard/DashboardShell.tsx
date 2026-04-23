@@ -35,17 +35,17 @@ function ShellSkeleton() {
 }
 
 export default function DashboardShell({ children, title, subtitle, actions }: DashboardShellProps) {
-  const router   = useRouter();
-  const params   = useParams();
+  const router = useRouter();
+  const params = useParams();
   const pathname = usePathname();
-  const lang     = (params.lang as string) || 'en';
-  const isAr     = lang === 'ar';
-  const { t }    = useTranslation();
+  const lang = (params.lang as string) || 'en';
+  const isAr = lang === 'ar';
+  const { t } = useTranslation();
 
-  const [user, setUser]               = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
-  const [mobileOpen, setMobileOpen]   = useState(false);
-  const [notifOpen, setNotifOpen]     = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const fetchUser = useCallback(async () => {
@@ -115,9 +115,8 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
                       chevron_right
                     </span>
                   )}
-                  <span className={`font-semibold capitalize ${
-                    i === crumbs.length - 1 ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 cursor-pointer'
-                  }`}>
+                  <span className={`font-semibold capitalize ${i === crumbs.length - 1 ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600 cursor-pointer'
+                    }`}>
                     {crumb}
                   </span>
                 </React.Fragment>
@@ -304,7 +303,7 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
               key={pathname}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             >
               {children}
             </motion.div>

@@ -137,7 +137,7 @@ export default function Hero() {
               {/* Floating badge – experience */}
               <motion.div
                 animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                transition={{ duration: 4, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
                 className={`absolute ${isRtl ? 'left-4' : 'right-4'} bottom-8 glass-card rounded-2xl px-5 py-4 shadow-xl shadow-slate-900/10`}
               >
                 <p className="text-2xl font-black text-gradient leading-none">15+</p>
@@ -149,7 +149,7 @@ export default function Hero() {
               {/* Floating badge – rating */}
               <motion.div
                 animate={{ y: [0, 8, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
                 className={`absolute ${isRtl ? 'right-4' : 'left-4'} top-8 glass-card rounded-2xl px-4 py-3 shadow-xl shadow-slate-900/10`}
               >
                 <div className="flex items-center gap-1.5 mb-1">
@@ -175,7 +175,7 @@ export default function Hero() {
         <p className="text-[10px] font-bold uppercase tracking-[0.2em]">{isRtl ? 'مرر للأسفل' : 'Scroll'}</p>
         <motion.div
           animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
         >
           <span className="material-symbols-outlined text-xl">keyboard_arrow_down</span>
         </motion.div>

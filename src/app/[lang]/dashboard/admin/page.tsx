@@ -73,7 +73,7 @@ function StatusRing({ value, total, color }: { value: number; total: number; col
         strokeDasharray={circ}
         initial={{ strokeDashoffset: circ }}
         animate={{ strokeDashoffset: circ - (pct / 100) * circ }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         transform="rotate(-90 20 20)"
       />
     </svg>
@@ -135,11 +135,11 @@ export default function AdminAnalyticsPage() {
   ] : [];
 
   const statusRows = o ? [
-    { label: isAr ? 'قيد الانتظار' : 'Pending',   value: o.pending,   color: '#f59e0b', ringColor: '#f59e0b' },
-    { label: isAr ? 'مؤكد'         : 'Confirmed',  value: o.confirmed, color: '#14b8a6', ringColor: '#14b8a6' },
-    { label: isAr ? 'مكتمل'        : 'Completed',  value: o.completed, color: '#10b981', ringColor: '#10b981' },
-    { label: isAr ? 'ملغى'         : 'Cancelled',  value: o.cancelled, color: '#f87171', ringColor: '#f87171' },
-    { label: isAr ? 'غياب'         : 'No-show',    value: o.noShow,    color: '#94a3b8', ringColor: '#94a3b8' },
+    { label: isAr ? 'قيد الانتظار' : 'Pending', value: o.pending, color: '#f59e0b', ringColor: '#f59e0b' },
+    { label: isAr ? 'مؤكد' : 'Confirmed', value: o.confirmed, color: '#14b8a6', ringColor: '#14b8a6' },
+    { label: isAr ? 'مكتمل' : 'Completed', value: o.completed, color: '#10b981', ringColor: '#10b981' },
+    { label: isAr ? 'ملغى' : 'Cancelled', value: o.cancelled, color: '#f87171', ringColor: '#f87171' },
+    { label: isAr ? 'غياب' : 'No-show', value: o.noShow, color: '#94a3b8', ringColor: '#94a3b8' },
   ] : [];
 
   return (
@@ -243,7 +243,7 @@ export default function AdminAnalyticsPage() {
                           style={{ backgroundColor: s.color }}
                           initial={{ width: 0 }}
                           animate={{ width: `${o!.totalAppointments > 0 ? (s.value / o!.totalAppointments) * 100 : 0}%` }}
-                          transition={{ duration: 0.7, ease: 'easeOut' }}
+                          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                         />
                       </div>
                     </div>
@@ -286,7 +286,7 @@ export default function AdminAnalyticsPage() {
                                 className={`h-full rounded-full bg-gradient-to-r ${colors[i % colors.length]}`}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${pctVal}%` }}
-                                transition={{ duration: 0.6, delay: i * 0.06, ease: 'easeOut' }}
+                                transition={{ duration: 0.6, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
                               />
                             </div>
                           </div>
@@ -304,11 +304,11 @@ export default function AdminAnalyticsPage() {
               <p className="text-xs text-slate-400 mb-5">{isAr ? 'أرقام رئيسية' : 'Key numbers at a glance'}</p>
               <div className="space-y-3">
                 {[
-                  { icon: 'pending_actions', label: isAr ? 'قيد الانتظار' : 'Pending',    value: o!.pending,    bg: 'bg-amber-50',   text: 'text-amber-600' },
-                  { icon: 'payments',        label: isAr ? 'مدفوعات'     : 'Paid',         value: o!.paidCount,  bg: 'bg-teal-50',    text: 'text-teal-600' },
-                  { icon: 'event_busy',      label: isAr ? 'ملغى'        : 'Cancelled',    value: o!.cancelled,  bg: 'bg-red-50',     text: 'text-red-500' },
-                  { icon: 'person_off',      label: isAr ? 'غياب'        : 'No-shows',     value: o!.noShow,     bg: 'bg-slate-50',   text: 'text-slate-500' },
-                  { icon: 'speed',           label: isAr ? 'معدل الغياب' : 'No-show Rate', value: `${o!.noShowRate}%`, bg: 'bg-orange-50', text: 'text-orange-600' },
+                  { icon: 'pending_actions', label: isAr ? 'قيد الانتظار' : 'Pending', value: o!.pending, bg: 'bg-amber-50', text: 'text-amber-600' },
+                  { icon: 'payments', label: isAr ? 'مدفوعات' : 'Paid', value: o!.paidCount, bg: 'bg-teal-50', text: 'text-teal-600' },
+                  { icon: 'event_busy', label: isAr ? 'ملغى' : 'Cancelled', value: o!.cancelled, bg: 'bg-red-50', text: 'text-red-500' },
+                  { icon: 'person_off', label: isAr ? 'غياب' : 'No-shows', value: o!.noShow, bg: 'bg-slate-50', text: 'text-slate-500' },
+                  { icon: 'speed', label: isAr ? 'معدل الغياب' : 'No-show Rate', value: `${o!.noShowRate}%`, bg: 'bg-orange-50', text: 'text-orange-600' },
                 ].map(s => (
                   <div key={s.label} className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>

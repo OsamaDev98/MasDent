@@ -9,12 +9,12 @@ const NAV_ITEMS = ['home', 'services', 'team', 'contact'] as const;
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled]     = useState(false);
-  const { t }                        = useTranslation();
-  const params                       = useParams();
-  const router                       = useRouter();
-  const lang                         = (params?.lang as string) || 'en';
-  const isAr                         = lang === 'ar';
+  const [scrolled, setScrolled] = useState(false);
+  const { t } = useTranslation();
+  const params = useParams();
+  const router = useRouter();
+  const lang = (params?.lang as string) || 'en';
+  const isAr = lang === 'ar';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -27,13 +27,12 @@ export default function Navbar() {
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0,   opacity: 1 }}
+      animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? 'top-0 mx-0 rounded-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-900/6 border-b border-slate-200/60'
-          : 'top-3 mx-3 sm:mx-6 rounded-2xl glass shadow-xl shadow-slate-900/8'
-      }`}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled
+        ? 'top-0 mx-0 rounded-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-900/6 border-b border-slate-200/60'
+        : 'top-3 mx-3 sm:mx-6 rounded-2xl glass shadow-xl shadow-slate-900/8'
+        }`}
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-7">
         <div className="flex items-center justify-between h-[68px]">
@@ -113,7 +112,7 @@ export default function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="md:hidden overflow-hidden border-t border-slate-100/80 bg-white/95 backdrop-blur-xl"
           >
             <div className="px-5 py-5 flex flex-col gap-1">

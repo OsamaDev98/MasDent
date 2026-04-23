@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { emitNewAppointment, type Appointment } from '@/lib/appointments';
 
@@ -66,17 +66,16 @@ export default function AppointmentForm() {
     }
   };
 
-  const container = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
-  const itemVariant = {
+  const container: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
+  const itemVariant: Variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
   };
 
   const inputCls = (hasErr: boolean) =>
-    `peer w-full bg-white/50 backdrop-blur-sm outline-none ltr:pl-14 ltr:pr-5 rtl:pr-14 rtl:pl-5 pt-6 pb-2 text-slate-900 relative z-10 font-medium transition-all duration-300 rounded-2xl border-2 hover:bg-white focus:bg-white shadow-sm ${
-      hasErr
-        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-        : 'border-transparent focus:border-teal-400 focus:ring-4 focus:ring-teal-500/10 hover:border-slate-200'
+    `peer w-full bg-white/50 backdrop-blur-sm outline-none ltr:pl-14 ltr:pr-5 rtl:pr-14 rtl:pl-5 pt-6 pb-2 text-slate-900 relative z-10 font-medium transition-all duration-300 rounded-2xl border-2 hover:bg-white focus:bg-white shadow-sm ${hasErr
+      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+      : 'border-transparent focus:border-teal-400 focus:ring-4 focus:ring-teal-500/10 hover:border-slate-200'
     }`;
 
   return (
@@ -89,7 +88,7 @@ export default function AppointmentForm() {
 
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/80 backdrop-blur-2xl border border-white rounded-[2.5rem] shadow-2xl shadow-teal-900/10 overflow-hidden flex flex-col lg:flex-row">
-          
+
           {/* ── Left info panel ── */}
           <motion.div
             variants={container}
@@ -135,7 +134,7 @@ export default function AppointmentForm() {
                   </div>
                 </motion.a>
               ))}
-              
+
               <motion.div variants={itemVariant} className="flex items-start gap-5 pt-2">
                 <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0 mt-1">
                   <span className="material-symbols-outlined text-[24px]">location_on</span>
@@ -185,7 +184,7 @@ export default function AppointmentForm() {
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-              
+
               {/* Name */}
               <div className="relative group">
                 <input {...register('name')} type="text" id="name" className={inputCls(!!errors.name)} placeholder=" " />
@@ -251,9 +250,9 @@ export default function AppointmentForm() {
                   {isSubmitting
                     ? <span className="material-symbols-outlined animate-spin text-white">progress_activity</span>
                     : <>
-                        <span>{t('app.form.submit')}</span>
-                        <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform rtl:rotate-180">arrow_forward</span>
-                      </>}
+                      <span>{t('app.form.submit')}</span>
+                      <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform rtl:rotate-180">arrow_forward</span>
+                    </>}
                 </button>
                 <p className="text-center text-[11px] font-bold text-slate-400 mt-4 uppercase tracking-wider">{t('app.form.disclaimer')}</p>
               </div>

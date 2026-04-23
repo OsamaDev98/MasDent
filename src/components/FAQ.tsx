@@ -60,27 +60,23 @@ export default function FAQ() {
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: index * 0.08 }}
                 key={index}
-                className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
-                  isOpen
-                    ? 'bg-white border-teal-200 shadow-xl shadow-teal-900/5'
-                    : 'bg-white/60 border-slate-200 hover:border-teal-100 hover:bg-white'
-                }`}
+                className={`rounded-2xl border transition-all duration-300 overflow-hidden ${isOpen
+                  ? 'bg-white border-teal-200 shadow-xl shadow-teal-900/5'
+                  : 'bg-white/60 border-slate-200 hover:border-teal-100 hover:bg-white'
+                  }`}
               >
                 <button
                   className="w-full flex items-center justify-between p-6 text-left outline-none group cursor-pointer"
                   onClick={() => toggleFaq(index)}
                 >
-                  <span className={`font-bold text-base transition-colors ${
-                    isOpen ? 'text-[#0a4f49]' : 'text-slate-800 group-hover:text-[#0a4f49]'
-                  }`}>
+                  <span className={`font-bold text-base transition-colors ${isOpen ? 'text-[#0a4f49]' : 'text-slate-800 group-hover:text-[#0a4f49]'
+                    }`}>
                     {faq.question}
                   </span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                    isOpen ? 'bg-teal-50 text-[#0a4f49]' : 'bg-slate-100 text-slate-400 group-hover:bg-teal-50 group-hover:text-[#0a4f49]'
-                  }`}>
-                    <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${
-                      isOpen ? 'rotate-180' : ''
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${isOpen ? 'bg-teal-50 text-[#0a4f49]' : 'bg-slate-100 text-slate-400 group-hover:bg-teal-50 group-hover:text-[#0a4f49]'
                     }`}>
+                    <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
+                      }`}>
                       expand_more
                     </span>
                   </div>
@@ -92,7 +88,7 @@ export default function FAQ() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
                       <div className="px-6 pb-6 pt-0">
