@@ -2,118 +2,104 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, Variants } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
+
+const SERVICES = [
+  { icon: 'clean_hands',            key: 'item1' },
+  { icon: 'auto_awesome',           key: 'item2' },
+  { icon: 'dentistry',              key: 'item3' },
+  { icon: 'grid_view',              key: 'item4' },
+  { icon: 'health_and_safety',      key: 'item5' },
+  { icon: 'face_retouching_natural',key: 'item6' },
+] as const;
+
+const container: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
+
+const card: Variants = {
+  hidden:  { opacity: 0, y: 28, scale: 0.97 },
+  visible: { opacity: 1, y: 0,  scale: 1, transition: { duration: 0.55 } },
+};
 
 export default function Services() {
   const { t } = useTranslation();
 
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants: Variants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
-  };
-
   return (
-    <section className="py-20 px-4 relative z-10" id="services">
+    <section className="py-24 px-4 relative z-10" id="services">
+      {/* Subtle section bg */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+      </div>
+
       <div className="max-w-7xl mx-auto">
+
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{t('services.title')}</h2>
-          <p className="text-slate-300 max-w-2xl mx-auto text-lg font-light leading-relaxed">{t('services.subtitle')}</p>
+          <span className="section-label mb-5 inline-flex">
+            <span className="material-symbols-outlined text-sm">medical_services</span>
+            {t('services.title')}
+          </span>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mt-4 mb-5">
+            {t('services.title')}
+          </h2>
+          <p className="text-slate-500 max-w-2xl mx-auto text-lg font-light leading-relaxed">
+            {t('services.subtitle')}
+          </p>
         </motion.div>
+
+        {/* Grid */}
         <motion.div
-          variants={containerVariants}
+          variants={container}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          viewport={{ once: true, margin: '-80px' }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
         >
-          <motion.div variants={itemVariants} className="group p-10 rounded-[2.5rem] glass-card flex flex-col justify-start items-start hover:-translate-y-3 transition-transform duration-500 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-lg group-hover:shadow-primary/20 group-hover:scale-110">
-                <span className="material-symbols-outlined text-2xl">clean_hands</span>
-              </div>
-              <h3 className="text-slate-100 text-xl font-bold mb-3">{t('services.item1.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('services.item1.desc')}</p>
-            </div>
-          </motion.div>
+          {SERVICES.map(({ icon, key }, idx) => (
+            <motion.div
+              key={key}
+              variants={card}
+              whileHover={{ y: -6, transition: { type: 'spring', stiffness: 400, damping: 18 } }}
+              className="group relative p-8 rounded-3xl bg-white border border-slate-100 hover:border-teal-100 shadow-sm hover:shadow-xl hover:shadow-teal-900/6 transition-all duration-400 overflow-hidden cursor-default"
+            >
+              {/* BG gradient on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-50/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 rounded-3xl" />
 
-          <motion.div variants={itemVariants} className="group p-10 rounded-[2.5rem] glass-card flex flex-col justify-start items-start hover:-translate-y-3 transition-transform duration-500 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-lg group-hover:shadow-primary/20 group-hover:scale-110">
-                <span className="material-symbols-outlined text-2xl">auto_awesome</span>
-              </div>
-              <h3 className="text-slate-100 text-xl font-bold mb-3">{t('services.item2.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('services.item2.desc')}</p>
-            </div>
-          </motion.div>
+              {/* Number watermark */}
+              <span className="absolute top-4 right-5 text-7xl font-black text-slate-50 group-hover:text-teal-50 transition-colors select-none leading-none">
+                {String(idx + 1).padStart(2, '0')}
+              </span>
 
-          <motion.div variants={itemVariants} className="group p-10 rounded-[2.5rem] glass-card flex flex-col justify-start items-start hover:-translate-y-3 transition-transform duration-500 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-lg group-hover:shadow-primary/20 group-hover:scale-110">
-                <span className="material-symbols-outlined text-2xl">dentistry</span>
-              </div>
-              <h3 className="text-slate-100 text-xl font-bold mb-3">{t('services.item3.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('services.item3.desc')}</p>
-            </div>
-          </motion.div>
+              <div className="relative z-10">
+                {/* Icon */}
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 text-[#0a4f49] group-hover:bg-gradient-to-br group-hover:from-[#0a4f49] group-hover:to-[#14b8a6] group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-teal-900/20 transition-all duration-400">
+                  <span className="material-symbols-outlined text-2xl">{icon}</span>
+                </div>
 
-          <motion.div variants={itemVariants} className="group p-10 rounded-[2.5rem] glass-card flex flex-col justify-start items-start hover:-translate-y-3 transition-transform duration-500 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-lg group-hover:shadow-primary/20 group-hover:scale-110">
-                <span className="material-symbols-outlined text-2xl">grid_view</span>
-              </div>
-              <h3 className="text-slate-100 text-xl font-bold mb-3">{t('services.item4.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('services.item4.desc')}</p>
-            </div>
-          </motion.div>
+                <h3 className="text-slate-900 text-lg font-bold mb-2.5 group-hover:text-[#0a4f49] transition-colors">
+                  {t(`services.${key}.title`)}
+                </h3>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  {t(`services.${key}.desc`)}
+                </p>
 
-          <motion.div variants={itemVariants} className="group p-10 rounded-[2.5rem] glass-card flex flex-col justify-start items-start hover:-translate-y-3 transition-transform duration-500 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-lg group-hover:shadow-primary/20 group-hover:scale-110">
-                <span className="material-symbols-outlined text-2xl">health_and_safety</span>
+                {/* Learn more arrow */}
+                <div className="mt-5 flex items-center gap-1.5 text-xs font-bold text-slate-300 group-hover:text-[#0a4f49] transition-colors">
+                  <span className="uppercase tracking-wider">Learn more</span>
+                  <span className="material-symbols-outlined text-sm translate-x-0 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
               </div>
-              <h3 className="text-slate-100 text-xl font-bold mb-3">{t('services.item5.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('services.item5.desc')}</p>
-            </div>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="group p-10 rounded-[2.5rem] glass-card flex flex-col justify-start items-start hover:-translate-y-3 transition-transform duration-500 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-lg group-hover:shadow-primary/20 group-hover:scale-110">
-                <span className="material-symbols-outlined text-2xl">face_retouching_natural</span>
-              </div>
-              <h3 className="text-slate-100 text-xl font-bold mb-3">{t('services.item6.title')}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('services.item6.desc')}</p>
-            </div>
-          </motion.div>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>

@@ -1,78 +1,106 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { t } = useTranslation();
-  const params = useParams();
-  const router = useRouter();
-  const lang = (params?.lang as string) || 'en';
+const NAV_ITEMS = ['home', 'services', 'team', 'contact'] as const;
 
-  const handleLangSwitch = () => {
-    const newLang = lang === 'en' ? 'ar' : 'en';
-    router.push(`/${newLang}`);
-  };
+export default function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled]     = useState(false);
+  const { t }                        = useTranslation();
+  const params                       = useParams();
+  const router                       = useRouter();
+  const lang                         = (params?.lang as string) || 'en';
+  const isAr                         = lang === 'ar';
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const switchLang = () => router.push(`/${lang === 'en' ? 'ar' : 'en'}`);
 
   return (
     <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed top-4 left-4 right-4 z-50 rounded-2xl glass shadow-2xl border border-white/5"
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: 0,   opacity: 1 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? 'top-0 mx-0 rounded-none bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-900/6 border-b border-slate-200/60'
+          : 'top-3 mx-3 sm:mx-6 rounded-2xl glass shadow-xl shadow-slate-900/8'
+      }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <Link href={`/${lang}`} className="flex items-center gap-3 text-primary cursor-pointer">
+      <div className="max-w-7xl mx-auto px-5 sm:px-7">
+        <div className="flex items-center justify-between h-[68px]">
+
+          {/* Logo */}
+          <Link href={`/${lang}`} className="flex items-center gap-3 group">
             <motion.div
-              whileHover={{ rotate: 180 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-dark shadow-[0_0_20px_rgba(20,184,166,0.3)]"
+              whileHover={{ rotate: 15, scale: 1.08 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-[#0a4f49] to-[#14b8a6] flex items-center justify-center shadow-lg shadow-teal-900/20"
             >
-              <span className="material-symbols-outlined text-3xl font-bold text-white">
-                dentistry
-              </span>
+              <span className="material-symbols-outlined text-[22px] text-white font-bold">dentistry</span>
+              <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             </motion.div>
-            <h2 className="text-xl font-black uppercase tracking-widest text-gradient">
-              {lang === 'ar' ? 'ماس دينت' : 'Mas Dent'}
-            </h2>
+            <div className="leading-none">
+              <p className="text-base font-black tracking-tight text-gradient">
+                {isAr ? 'ماس دينت' : 'Mas Dent'}
+              </p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 mt-0.5">
+                {isAr ? 'عيادة متخصصة' : 'Dental Clinic'}
+              </p>
+            </div>
           </Link>
-          <nav className="hidden md:flex items-center gap-10">
-            {['home', 'services', 'team', 'contact'].map((item) => (
-              <Link 
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {NAV_ITEMS.map((item) => (
+              <Link
                 key={item}
-                className="text-sm font-semibold uppercase tracking-wider text-slate-300 hover:text-white transition-all hover:scale-105" 
                 href={item === 'home' ? `/${lang}` : `#${item}`}
+                className="relative px-4 py-2 text-sm font-semibold text-slate-600 hover:text-[#0a4f49] transition-colors rounded-xl hover:bg-teal-50/80 group"
               >
                 {t(`nav.${item}`)}
+                <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-[#0a4f49] rounded-full transition-all duration-300 group-hover:w-4" />
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-6">
+
+          {/* Actions */}
+          <div className="flex items-center gap-2.5">
+            {/* Lang Toggle */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleLangSwitch}
-              className="text-xs font-bold uppercase tracking-widest w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border border-white/10"
+              onClick={switchLang}
+              className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-[11px] font-black tracking-widest text-slate-700 transition-all border border-slate-200/60"
             >
-              {lang === 'en' ? 'AR' : 'EN'}
+              {isAr ? 'EN' : 'AR'}
             </motion.button>
+
+            {/* CTA Book */}
             <motion.a
               href="#contact"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="hidden sm:flex bg-gradient-to-r from-accent to-yellow-600 text-white rounded-full h-12 px-8 items-center justify-center text-sm font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all cursor-pointer uppercase tracking-widest"
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.96 }}
+              className="hidden sm:flex btn-gold h-10 px-5 text-xs tracking-widest uppercase font-black gap-2 shadow-md"
             >
+              <span className="material-symbols-outlined text-sm">calendar_month</span>
               {t('nav.book')}
             </motion.a>
+
+            {/* Mobile hamburger */}
             <button
-              className="md:hidden p-2 text-slate-400 cursor-pointer hover:text-white"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setMobileOpen(v => !v)}
+              className="md:hidden w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 transition-all"
             >
-              <span className="material-symbols-outlined text-3xl">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+              <span className="material-symbols-outlined text-xl">{mobileOpen ? 'close' : 'menu'}</span>
             </button>
           </div>
         </div>
@@ -80,33 +108,46 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {mobileOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
+            animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden flex flex-col bg-surface p-6 gap-6 overflow-hidden rounded-b-2xl border-t border-white/5"
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="md:hidden overflow-hidden border-t border-slate-100/80 bg-white/95 backdrop-blur-xl"
           >
-            {['home', 'services', 'team', 'contact'].map((item) => (
-              <Link 
-                key={item}
-                className="text-sm font-semibold uppercase tracking-wider text-slate-300 hover:text-white transition-colors" 
-                href={item === 'home' ? `/${lang}` : `#${item}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+            <div className="px-5 py-5 flex flex-col gap-1">
+              {NAV_ITEMS.map((item, i) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <Link
+                    href={item === 'home' ? `/${lang}` : `#${item}`}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:text-[#0a4f49] hover:bg-teal-50 rounded-xl transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-slate-400">
+                      {item === 'home' ? 'home' : item === 'services' ? 'medical_services' : item === 'team' ? 'groups' : 'call'}
+                    </span>
+                    {t(`nav.${item}`)}
+                  </Link>
+                </motion.div>
+              ))}
+              <motion.a
+                href="#contact"
+                onClick={() => setMobileOpen(false)}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-3 btn-gold h-12 px-5 text-xs tracking-widest uppercase font-black gap-2"
               >
-                {t(`nav.${item}`)}
-              </Link>
-            ))}
-            <motion.a
-              href="#contact"
-              onClick={() => setIsMobileMenuOpen(false)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="flex bg-gradient-to-r from-accent to-yellow-600 text-white rounded-full h-14 px-6 items-center justify-center text-sm font-bold mt-4 cursor-pointer shadow-[0_0_20px_rgba(212,175,55,0.3)] uppercase tracking-widest"
-            >
-              {t('nav.book')}
-            </motion.a>
+                <span className="material-symbols-outlined text-sm">calendar_month</span>
+                {t('nav.book')}
+              </motion.a>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,111 +3,123 @@
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import HeadImage from "../assets/Head.jpg"
+
+const WHY_ITEMS = [
+  { icon: 'verified_user', key: 'item1' },
+  { icon: 'memory', key: 'item2' },
+  { icon: 'spa', key: 'item3' },
+  { icon: 'payments', key: 'item4' },
+] as const;
 
 export default function WhyChooseUs() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { x: isRtl ? 20 : -20, opacity: 0 },
-    visible: {
-      x: 0,
-      opacity: 1,
-      transition: { duration: 0.5 }
-    }
-  };
-
   return (
-    <section className="py-20 px-4 relative z-10">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 items-center">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          variants={containerVariants}
-          className="w-full lg:w-1/2"
-        >
-          <motion.h2 variants={itemVariants} className="text-3xl md:text-5xl font-black mb-6 leading-tight text-white">
-            {t('why.title').split(' ').map((word, i) => (
-              <span key={i} className={i === 1 ? 'text-gradient-gold' : ''}>{word} </span>
-            ))}
-          </motion.h2>
-          <motion.p variants={itemVariants} className="text-slate-400 text-lg mb-10">{t('why.subtitle')}</motion.p>
-            <motion.div variants={itemVariants} className="flex gap-4 group p-5 glass-card mb-4 hover:shadow-2xl">
-              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-xl bg-[#0A0A0A] border border-white/10 text-primary group-hover:bg-primary group-hover:text-black transition-all shadow-lg group-hover:shadow-primary/20">
-                <span className="material-symbols-outlined">verified_user</span>
-              </div>
-              <div>
-                <h4 className="font-bold mb-1 text-slate-100 text-lg">{t('why.item1.title')}</h4>
-                <p className="text-sm text-slate-400 leading-relaxed">{t('why.item1.desc')}</p>
-              </div>
-            </motion.div>
-            <motion.div variants={itemVariants} className="flex gap-4 group p-5 glass-card mb-4 hover:shadow-2xl">
-              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-xl bg-[#0A0A0A] border border-white/10 text-primary group-hover:bg-primary group-hover:text-black transition-all shadow-lg group-hover:shadow-primary/20">
-                <span className="material-symbols-outlined">memory</span>
-              </div>
-              <div>
-                <h4 className="font-bold mb-1 text-slate-100 text-lg">{t('why.item2.title')}</h4>
-                <p className="text-sm text-slate-400 leading-relaxed">{t('why.item2.desc')}</p>
-              </div>
-            </motion.div>
-            <motion.div variants={itemVariants} className="flex gap-4 group p-5 glass-card mb-4 hover:shadow-2xl">
-              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-xl bg-[#0A0A0A] border border-white/10 text-primary group-hover:bg-primary group-hover:text-black transition-all shadow-lg group-hover:shadow-primary/20">
-                <span className="material-symbols-outlined">spa</span>
-              </div>
-              <div>
-                <h4 className="font-bold mb-1 text-slate-100 text-lg">{t('why.item3.title')}</h4>
-                <p className="text-sm text-slate-400 leading-relaxed">{t('why.item3.desc')}</p>
-              </div>
-            </motion.div>
-            <motion.div variants={itemVariants} className="flex gap-4 group p-5 glass-card mb-4 hover:shadow-2xl">
-              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-xl bg-[#0A0A0A] border border-white/10 text-primary group-hover:bg-primary group-hover:text-black transition-all shadow-lg group-hover:shadow-primary/20">
-                <span className="material-symbols-outlined">payments</span>
-              </div>
-              <div>
-                <h4 className="font-bold mb-1 text-slate-100 text-lg">{t('why.item4.title')}</h4>
-                <p className="text-sm text-slate-400 leading-relaxed">{t('why.item4.desc')}</p>
-              </div>
-            </motion.div>
-        </motion.div>
+    <section className="py-24 px-4 relative z-10 overflow-hidden">
+      {/* BG Decoration */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className={`absolute top-0 ${isRtl ? 'left-0' : 'right-0'} w-[40%] h-full bg-gradient-to-l from-teal-50/60 to-transparent`} />
+      </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="w-full lg:w-1/2 relative"
-        >
-          <div className="rounded-[2.5rem] overflow-hidden shadow-[0_0_40px_rgba(13,162,231,0.15)] ring-1 ring-white/10 relative w-full h-[300px] md:h-[500px]">
-            <Image
-              alt="Happy Patient"
-              className="w-full h-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBt39rUoisWpF83BvTanM-R9dAri56u5QOi_qlABL8CkSbVzYDyB0RD_O0ENaqvln0t_XQk7sI3w8C3RybD8eLt6v0KmT7VT08mwv35QtNaJBjeaRlIbNGlfu9jvBYqkkqqwBCGx7lEEgxg6XM6a-dH209Pc3MKyi2tBxzRVAJ3pOuGiEv77u8aWvqGjlcXEd0jH6tOpT4gIbKbpjoymSJnAqaQpI1dKBakiLVbPsrLAYNOcw3OfOZPm_Y-PGMQHTisgjqaqxt0SaI"
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </div>
+      <div className="max-w-7xl mx-auto">
+        <div className={`flex flex-col lg:flex-row gap-16 xl:gap-24 items-center ${isRtl ? 'lg:flex-row-reverse' : ''}`}>
+
+          {/* ── Left: Image ── */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-            className={`absolute -bottom-6 ${isRtl ? '-right-6' : '-left-6'} glass p-8 rounded-3xl hidden md:block border-accent/20`}
+            initial={{ opacity: 0, x: isRtl ? 40 : -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full lg:w-[45%] relative"
           >
-            <p className="text-4xl font-black mb-1 text-gradient-gold">{t('why.years')}</p>
-            <p className="text-sm font-medium opacity-90 uppercase tracking-wider">{t('why.years.text')}</p>
+            <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl shadow-teal-900/10 ring-1 ring-teal-900/5 aspect-[4/5] max-h-[560px]">
+              <Image
+                alt="Happy Patient at Mas Dent"
+                src={HeadImage}
+                fill
+                sizes="(max-width: 1024px) 100vw, 45vw"
+                className="object-cover"
+              />
+              {/* Overlay gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a4f49]/30 via-transparent to-transparent" />
+            </div>
+
+            {/* Floating experience badge */}
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              className={`absolute -bottom-5 ${isRtl ? '-right-4' : '-left-4'} glass-card rounded-2xl px-6 py-5 shadow-xl shadow-slate-900/10 hidden md:block`}
+            >
+              <p className="text-4xl font-black text-gradient leading-none">{t('why.years')}</p>
+              <p className="text-xs font-bold text-slate-500 mt-1.5 uppercase tracking-wider">{t('why.years.text')}</p>
+            </motion.div>
+
+            {/* Floating satisfied-patients badge */}
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              className={`absolute top-6 ${isRtl ? '-left-4' : '-right-4'} glass-card rounded-2xl px-5 py-3.5 shadow-xl shadow-slate-900/10 hidden md:flex items-center gap-3`}
+            >
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0a4f49] to-[#14b8a6] flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-white text-[17px]">groups</span>
+              </div>
+              <div>
+                <p className="text-sm font-black text-slate-900 leading-none">12K+</p>
+                <p className="text-[10px] font-semibold text-slate-400 mt-0.5">
+                  {isRtl ? 'مريض سعيد' : 'Patients Treated'}
+                </p>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+
+          {/* ── Right: Text ── */}
+          <div className="w-full lg:w-[55%]">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="section-label mb-5 inline-flex">
+                <span className="material-symbols-outlined text-sm">verified</span>
+                {isRtl ? 'لماذا تختارنا' : 'Why Choose Us'}
+              </span>
+              <h2 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight mt-4 mb-4">
+                {t('why.title').split(' ').map((word: string, i: number) => (
+                  <span key={i} className={i === 1 ? 'text-gradient-gold' : ''}>{word} </span>
+                ))}
+              </h2>
+              <p className="text-slate-500 text-lg font-light leading-relaxed mb-10">
+                {t('why.subtitle')}
+              </p>
+            </motion.div>
+
+            <div className="space-y-4">
+              {WHY_ITEMS.map(({ icon, key }, i) => (
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, x: isRtl ? 20 : -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  className="group flex gap-5 p-5 rounded-2xl bg-white border border-slate-100 hover:border-teal-100 hover:shadow-lg hover:shadow-teal-900/5 transition-all duration-300"
+                >
+                  <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-teal-50 border border-teal-100 text-[#0a4f49] group-hover:bg-gradient-to-br group-hover:from-[#0a4f49] group-hover:to-[#14b8a6] group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-teal-900/20 transition-all duration-300">
+                    <span className="material-symbols-outlined text-xl">{icon}</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 mb-1.5 text-base group-hover:text-[#0a4f49] transition-colors">
+                      {t(`why.${key}.title`)}
+                    </h4>
+                    <p className="text-slate-500 text-sm leading-relaxed">{t(`why.${key}.desc`)}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

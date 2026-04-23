@@ -39,12 +39,12 @@ export default function Gallery() {
           variants={itemVariants}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-5xl font-black mb-6 text-white">
+          <h2 className="text-3xl md:text-5xl font-black mb-6 text-slate-900">
             {t('gallery.title').split(' ').map((word, i) => (
               <span key={i} className={i === 1 ? 'text-gradient' : ''}>{word} </span>
             ))}
           </h2>
-          <p className="text-slate-400 max-w-2xl mx-auto text-lg">
+          <p className="text-slate-600 max-w-2xl mx-auto text-lg">
             {t('gallery.subtitle')}
           </p>
         </motion.div>
@@ -56,7 +56,7 @@ export default function Gallery() {
           viewport={{ once: true, margin: "-50px" }}
           className="grid grid-cols-1 lg:grid-cols-3 gap-8"
         >
-          <motion.div variants={itemVariants} className="group glass-card overflow-hidden">
+          <motion.div variants={itemVariants} className="group glass-card overflow-hidden shadow-xl hover:shadow-2xl transition-all rounded-3xl">
             <div className="h-64 relative overflow-hidden">
               <BeforeAfterSlider
                 beforeImage="/before_whitening.png"
@@ -65,13 +65,13 @@ export default function Gallery() {
                 afterLabel={t('gallery.after')}
               />
             </div>
-            <div className="p-6">
-              <h4 className="text-xl font-bold mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-teal-300 transition-all">{t('gallery.item1.title')}</h4>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('gallery.item1.desc')}</p>
+            <div className="p-6 bg-white">
+              <h4 className="text-slate-800 text-xl font-bold mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary-dark group-hover:to-teal-500 transition-all">{t('gallery.item1.title')}</h4>
+              <p className="text-slate-600 text-sm leading-relaxed">{t('gallery.item1.desc')}</p>
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="group glass-card overflow-hidden">
+          <motion.div variants={itemVariants} className="group glass-card overflow-hidden shadow-xl hover:shadow-2xl transition-all rounded-3xl">
             <div className="h-64 relative overflow-hidden">
               <BeforeAfterSlider
                 beforeImage="/before_ortho.png"
@@ -80,13 +80,13 @@ export default function Gallery() {
                 afterLabel={t('gallery.after')}
               />
             </div>
-            <div className="p-6">
-              <h4 className="text-xl font-bold mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-teal-300 transition-all">{t('gallery.item2.title')}</h4>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('gallery.item2.desc')}</p>
+            <div className="p-6 bg-white">
+              <h4 className="text-slate-800 text-xl font-bold mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary-dark group-hover:to-teal-500 transition-all">{t('gallery.item2.title')}</h4>
+              <p className="text-slate-600 text-sm leading-relaxed">{t('gallery.item2.desc')}</p>
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="group glass-card overflow-hidden">
+          <motion.div variants={itemVariants} className="group glass-card overflow-hidden shadow-xl hover:shadow-2xl transition-all rounded-3xl">
             <div className="h-64 relative overflow-hidden">
               <BeforeAfterSlider
                 beforeImage="/before_veneers.png"
@@ -95,9 +95,9 @@ export default function Gallery() {
                 afterLabel={t('gallery.after')}
               />
             </div>
-            <div className="p-6">
-              <h4 className="text-xl font-bold mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-teal-300 transition-all">{t('gallery.item3.title')}</h4>
-              <p className="text-slate-400 text-sm leading-relaxed">{t('gallery.item3.desc')}</p>
+            <div className="p-6 bg-white">
+              <h4 className="text-slate-800 text-xl font-bold mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary-dark group-hover:to-teal-500 transition-all">{t('gallery.item3.title')}</h4>
+              <p className="text-slate-600 text-sm leading-relaxed">{t('gallery.item3.desc')}</p>
             </div>
           </motion.div>
         </motion.div>

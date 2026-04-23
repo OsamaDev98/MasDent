@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, Cairo } from "next/font/google";
+import { Inter, Cairo, Geist } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const inter = Inter({
   variable: "--font-inter",
@@ -12,10 +15,20 @@ export const cairo = Cairo({
   subsets: ["arabic"],
 });
 
+export const metadata: Metadata = {
+  title: "Mas Dent",
+};
+
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  return children;
+}) {
+  return (
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+      <body suppressHydrationWarning className="min-h-full antialiased">
+        {children}
+      </body>
+    </html>
+  );
 }

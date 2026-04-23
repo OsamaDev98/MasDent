@@ -4,12 +4,10 @@
   "nav.team": "Team",
   "nav.contact": "Contact",
   "nav.book": "Book Now",
-  
   "hero.title": "Welcome to <span class='text-primary'>Mas Dent</span> Dental Clinic",
   "hero.subtitle": "Your smile is our priority. High-quality dental care with a gentle touch and state-of-the-art technology.",
   "hero.cta1": "Book Appointment",
   "hero.cta2": "Contact Us",
-  
   "services.title": "Our Services",
   "services.subtitle": "Comprehensive dental care for your whole family using the latest clinical techniques.",
   "services.item1.title": "Teeth Cleaning",
@@ -24,7 +22,6 @@
   "services.item5.desc": "Gentle and painless root treatments to save your natural teeth.",
   "services.item6.title": "Cosmetic Dentistry",
   "services.item6.desc": "Transform your appearance with veneers, bonding, and full smile makeovers.",
-  
   "why.title": "Why Patients Trust Mas Dent Clinic",
   "why.subtitle": "We believe that every patient deserves a personalized experience in a calm and supportive environment.",
   "why.item1.title": "Experienced Doctors",
@@ -37,7 +34,6 @@
   "why.item4.desc": "Transparent costs and flexible financing options.",
   "why.years": "15+",
   "why.years.text": "Years of Excellence",
-  
   "team.title": "Meet Our Experts",
   "team.subtitle": "Our team of dedicated professionals is here to help you achieve the smile of your dreams.",
   "team.doc1.name": "Dr. Sarah Mitchell",
@@ -52,7 +48,6 @@
   "team.doc4.name": "Dr. David Chen",
   "team.doc4.role": "General Dentist",
   "team.doc4.desc": "Focused on preventive care and patient education for lifelong dental health.",
-  
   "gallery.title": "Transforming Smiles: Our Before & After Gallery",
   "gallery.subtitle": "See real results from our patients and imagine your own smile transformation.",
   "gallery.before": "Before",
@@ -63,7 +58,6 @@
   "gallery.item2.desc": "Comprehensive alignment treatment to create a balanced, functional, and beautiful smile.",
   "gallery.item3.title": "Cosmetic Veneers",
   "gallery.item3.desc": "A complete smile makeover using custom-crafted porcelain veneers for a natural look.",
-
   "test.title": "Patient Success Stories",
   "test.subtitle": "Real feedback from our happy patients.",
   "test.1.text": "The best dental experience I've ever had. Dr. Sarah was so gentle and explained everything clearly. My teeth have never looked better!",
@@ -78,7 +72,6 @@
   "test.4.text": "From the moment I walked in, I felt comfortable. Exceptional care, state-of-the-art facility, and a truly caring team.",
   "test.4.name": "Michael Chen",
   "test.4.role": "Routine Care Patient",
-
   "app.title": "Book Your Consultation",
   "app.subtitle": "Take the first step towards your perfect smile. Schedule an appointment with our expert team today and we'll be in touch to confirm your visit.",
   "app.left.title": "Let's create \nyour dream smile",
@@ -106,7 +99,6 @@
   "app.form.submit": "Confirm Appointment",
   "app.form.disclaimer": "By submitting this form, you agree to our terms and privacy policy.",
   "app.form.success": "Thank you for your request! We will contact you soon.",
-
   "faq.title": "Frequently Asked Questions",
   "faq.subtitle": "Everything you need to know about your visit to Mas Dent Clinic.",
   "faq.q1": "What should I bring to my first appointment?",
@@ -119,7 +111,6 @@
   "faq.a4": "Yes, we provide emergency dental care. Please call us immediately if you have a dental emergency.",
   "faq.q5": "Is professional teeth whitening safe?",
   "faq.a5": "Absolutely. Our professional whitening treatments are safe, effective, and performed under expert supervision.",
-
   "contact.title": "Visit Our Clinic",
   "contact.loc.title": "Our Location",
   "contact.loc.desc": "123 Dental Plaza, Medical District<br/>Beverly Hills, CA 90210",
@@ -131,7 +122,6 @@
   "contact.contact.d1": "Emergency: +1 (555) 999-0000",
   "contact.contact.d2": "Billing: billing@masdent.com",
   "contact.map.name": "Mas Dent Clinic",
-  
   "footer.about": "About Us",
   "footer.about_text": "Mas Dent is a premium dental clinic dedicated to providing world-class care and beautiful smiles.",
   "footer.quick_links": "Quick Links",
@@ -147,5 +137,81 @@
   "footer.newsletter.title": "Newsletter",
   "footer.newsletter.desc": "Subscribe for oral health tips and clinic updates.",
   "footer.newsletter.placeholder": "Your email",
-  "footer.copyright": "© 2024 Mas Dent Dental Clinic. All rights reserved. Designed for a brighter smile."
+  "footer.copyright": "© 2026 Mas Dent Dental Clinic. All rights reserved. Designed for a brighter smile.",
+  "dashboard.pending": "Pending",
+  "dashboard.confirmed": "Confirmed",
+  "dashboard.cancelled": "Cancelled",
+  "dashboard.title": "Admin Dashboard",
+  "dashboard.logout": "Logout",
+  "dashboard.site": "Site",
+  "dashboard.welcome": "Welcome, ",
+  "dashboard.appointments": "Appointments",
+  "dashboard.manage": "Manage and track all patient bookings in real-time.",
+  "dashboard.total": "Total",
+  "dashboard.all": "All",
+  "dashboard.refresh": "Refresh",
+  "dashboard.noAppts": "No appointments found",
+  "dashboard.bookingsAppear": "Bookings from the site form appear here.",
+  "dashboard.patient": "Patient",
+  "dashboard.contact": "Contact",
+  "dashboard.service": "Service",
+  "dashboard.date": "Date",
+  "dashboard.status": "Status",
+  "dashboard.actions": "Actions",
+  "dashboard.new": "NEW",
+  "dashboard.view": "View",
+  "dashboard.confirm": "Confirm",
+  "dashboard.cancel": "Cancel",
+  "dashboard.deleteAppt": "Delete Appointment?",
+  "dashboard.cannotUndo": "This cannot be undone.",
+  "dashboard.delete": "Delete",
+  "dashboard.cancelBtn": "Cancel",
+  "dashboard.email": "Email",
+  "dashboard.phone": "Phone",
+  "dashboard.prefDate": "Preferred Date",
+  "dashboard.submitted": "Submitted",
+  "dashboard.notes": "Notes",
+  "login.title": "Mas Dent",
+  "login.subtitle": "Admin Portal",
+  "login.welcome": "Welcome back",
+  "login.desc": "Sign in to manage appointments.",
+  "login.username": "Username",
+  "login.password": "Password",
+  "login.submit": "Sign In",
+  "login.footer": "Staff accounts are managed by the administrator. No self-registration.",
+  "login.error": "Login failed",
+  "login.network": "Network error. Please try again.",
+
+  "appointments": "Appointments",
+  "appointments_subtitle": "Manage and track all patient appointments",
+  "new_appointment": "New Appointment",
+
+  "patients": "Patients",
+  "patients_subtitle": "Manage patient records and history",
+  "new_patient": "New Patient",
+
+  "payments": "Payments",
+  "payments_subtitle": "Track and record appointment payments",
+
+  "queue": "Queue",
+  "queue_subtitle": "Manage today's patient queue in real time",
+
+  "analytics": "Analytics Overview",
+  "analytics_subtitle": "Clinic performance and insights",
+  "refresh": "Refresh",
+
+  "finance": "Billing & Finance",
+  "finance_subtitle": "Track payments and export reports",
+  "export_csv": "Export CSV",
+
+  "services": "Services",
+  "services_subtitle": "Manage dental service offerings and pricing",
+  "new_service": "New Service",
+
+  "staff_mgmt": "Staff Management",
+  "staff_subtitle": "Manage staff accounts and roles",
+  "new_staff": "New Staff Member",
+
+  "settings": "System Settings",
+  "settings_subtitle": "Manage clinic information and system configuration"
 }

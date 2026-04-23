@@ -4,112 +4,153 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 
+const SOCIAL_ICONS = [
+  { icon: 'social_leaderboard', label: 'Facebook' },
+  { icon: 'public', label: 'Twitter' },
+  { icon: 'camera_alt', label: 'Instagram' },
+];
+
 export default function Footer() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-  };
+  const isAr = locale === 'ar';
 
   return (
-    <footer className="bg-[#050505] text-slate-400 py-16 px-4 border-t border-white/5 relative z-10">
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        className="max-w-7xl mx-auto"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          <motion.div variants={itemVariants} className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 text-white mb-6">
-              <span className="material-symbols-outlined text-primary text-3xl font-bold">dentistry</span>
-              <h2 className="text-xl font-bold tracking-tight">{locale === 'ar' ? 'ماس دينت' : 'Mas Dent'}</h2>
-            </div>
-            <p className="text-sm leading-relaxed mb-6">{t('footer.desc')}</p>
-            <div className="flex gap-4">
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Link className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-primary hover:text-black hover:border-transparent transition-all cursor-pointer" href="#">
-                  <span className="material-symbols-outlined text-white text-xl">social_leaderboard</span>
-                </Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Link className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-primary hover:text-black hover:border-transparent transition-all cursor-pointer" href="#">
-                  <span className="material-symbols-outlined text-white text-xl">public</span>
-                </Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Link className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-primary hover:text-black hover:border-transparent transition-all cursor-pointer" href="#">
-                  <span className="material-symbols-outlined text-white text-xl">camera_alt</span>
-                </Link>
-              </motion.div>
-            </div>
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <h4 className="text-white font-bold mb-6">{t('footer.quick_links')}</h4>
-            <ul className="space-y-4 text-sm">
-              <li><Link className="hover:text-primary transition-colors cursor-pointer" href="#">{t('footer.about')}</Link></li>
-              <li><Link className="hover:text-primary transition-colors cursor-pointer" href="#">{t('nav.services')}</Link></li>
-              <li><Link className="hover:text-primary transition-colors cursor-pointer" href="#">{t('footer.links.patient_portal')}</Link></li>
-              <li><Link className="hover:text-primary transition-colors cursor-pointer" href="#">{t('footer.links.privacy')}</Link></li>
-            </ul>
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <h4 className="text-white font-bold mb-6">{t('contact.hours.title')}</h4>
-            <ul className="space-y-4 text-sm">
-              <li className="flex justify-between border-b border-slate-800 pb-2">
-                <span>{t('contact.hours.d1').split(': ')[0]}</span>
-                <span className="text-white">{t('contact.hours.d1').split(': ').slice(1).join(': ')}</span>
-              </li>
-              <li className="flex justify-between border-b border-slate-800 pb-2">
-                <span>{t('contact.hours.d2').split(': ')[0]}</span>
-                <span className="text-white">{t('contact.hours.d2').split(': ').slice(1).join(': ')}</span>
-              </li>
-              <li className="flex justify-between pb-2">
-                <span>{t('contact.hours.d3').split(': ')[0]}</span>
-                <span className="text-white text-primary">{t('contact.hours.d3').split(': ').slice(1).join(': ')}</span>
-              </li>
-            </ul>
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <h4 className="text-white font-bold mb-6">{t('contact.contact.title')}</h4>
-            <ul className="space-y-4 text-sm">
-              <li className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-primary text-xl">emergency</span>
-                <div>
-                  <span className="block text-xs text-slate-500">{t('contact.contact.d1').split(': ')[0]}</span>
-                  <a href="tel:+15559990000" className="text-white hover:text-primary transition-colors cursor-pointer">{t('contact.contact.d1').split(': ').slice(1).join(': ')}</a>
+    <footer className="relative z-10 overflow-hidden" id="contact">
+      {/* Main Footer */}
+      <div className="bg-[#071f1d] text-slate-400 pt-16 pb-6 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+
+            {/* Brand Column */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="md:col-span-1"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-900/30">
+                  <span className="material-symbols-outlined text-white text-xl">dentistry</span>
                 </div>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-primary text-xl">payments</span>
-                <div>
-                  <span className="block text-xs text-slate-500">{t('contact.contact.d2').split(': ')[0]}</span>
-                  <a href="mailto:billing@masdent.com" className="text-white hover:text-primary transition-colors cursor-pointer">{t('contact.contact.d2').split(': ').slice(1).join(': ')}</a>
+                <div className="leading-none">
+                  <p className="text-white font-black text-base tracking-tight">
+                    {isAr ? 'ماس دينت' : 'Mas Dent'}
+                  </p>
+                  <p className="text-teal-400/60 text-[10px] font-bold uppercase tracking-widest mt-0.5">
+                    {isAr ? 'عيادة متخصصة' : 'Dental Clinic'}
+                  </p>
                 </div>
-              </li>
-            </ul>
-          </motion.div>
+              </div>
+              <p className="text-sm leading-relaxed text-slate-500 mb-6">{t('footer.desc')}</p>
+              <div className="flex gap-2.5">
+                {SOCIAL_ICONS.map(({ icon, label }) => (
+                  <motion.div key={label} whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.9 }}>
+                    <Link
+                      href="#"
+                      aria-label={label}
+                      className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center hover:bg-teal-500 hover:border-teal-500 transition-all group"
+                    >
+                      <span className="material-symbols-outlined text-slate-400 group-hover:text-white text-[18px] transition-colors">{icon}</span>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Quick Links */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.08 }}
+            >
+              <h4 className="text-white font-bold mb-5 text-sm uppercase tracking-wider">{t('footer.quick_links')}</h4>
+              <ul className="space-y-3 text-sm">
+                {[
+                  { label: t('footer.about'), href: '#' },
+                  { label: t('nav.services'), href: '#services' },
+                  { label: t('footer.links.patient_portal'), href: '#' },
+                  { label: t('footer.links.privacy'), href: '#' },
+                ].map(({ label, href }) => (
+                  <li key={label}>
+                    <Link
+                      href={href}
+                      className="group flex items-center gap-2 hover:text-teal-400 transition-colors"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-teal-500/40 group-hover:bg-teal-400 transition-colors shrink-0" />
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Hours */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.16 }}
+            >
+              <h4 className="text-white font-bold mb-5 text-sm uppercase tracking-wider">{t('contact.hours.title')}</h4>
+              <ul className="space-y-3 text-sm">
+                {['d1', 'd2', 'd3'].map((day, i) => {
+                  const raw = t(`contact.hours.${day}`);
+                  const [label, ...rest] = raw.split(': ');
+                  const time = rest.join(': ');
+                  return (
+                    <li key={day} className="flex justify-between gap-4">
+                      <span>{label}</span>
+                      <span className={`font-semibold ${i === 2 ? 'text-teal-400' : 'text-white'}`}>{time}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </motion.div>
+
+            {/* Contact */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.24 }}
+            >
+              <h4 className="text-white font-bold mb-5 text-sm uppercase tracking-wider">{t('contact.contact.title')}</h4>
+              <ul className="space-y-4">
+                {[
+                  { icon: 'call', key: 'd1', href: 'tel:+15559990000' },
+                  { icon: 'mail', key: 'd2', href: 'mailto:billing@masdent.com' },
+                ].map(({ icon, key, href }) => {
+                  const raw = t(`contact.contact.${key}`);
+                  const [label, ...rest] = raw.split(': ');
+                  const value = rest.join(': ');
+                  return (
+                    <li key={key} className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-teal-900/60 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="material-symbols-outlined text-teal-400 text-[16px]">{icon}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-0.5">{label}</span>
+                        <a href={href} className="text-sm text-slate-300 hover:text-teal-400 transition-colors font-medium">{value}</a>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </motion.div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-xs text-slate-600">{t('footer.copyright')}</p>
+            <p className="text-xs text-slate-700">
+              {isAr ? 'صُنع بـ ❤️ لمرضانا' : 'Crafted with ❤️ for our patients'}
+            </p>
+          </div>
         </div>
-        <motion.div
-          variants={itemVariants}
-          className="pt-8 border-t border-white/10 text-center text-xs"
-        >
-          <p>{t('footer.copyright')}</p>
-        </motion.div>
-      </motion.div>
+      </div>
     </footer>
   );
 }
