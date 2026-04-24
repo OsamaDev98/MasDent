@@ -31,8 +31,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Reduce bundle size by enabling SWC minification (default in Next 15, but explicit)
-  swcMinify: true,
 
   // Strict mode helps catch issues early
   reactStrictMode: true,

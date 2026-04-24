@@ -40,7 +40,7 @@ function BarChart({ data, isAr }: { data: { date: string; count: number }[]; isA
             <motion.div
               initial={{ scaleY: 0 }}
               animate={{ scaleY: 1 }}
-              transition={{ delay: i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ delay: i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
               style={{ height: `${Math.max(heightPct, 4)}%`, transformOrigin: 'bottom' }}
               className="w-full rounded-t-xl relative overflow-hidden"
             >
@@ -70,7 +70,7 @@ function StatusRing({ value, total, color }: { value: number; total: number; col
         strokeDasharray={circ}
         initial={{ strokeDashoffset: circ }}
         animate={{ strokeDashoffset: circ - (pct / 100) * circ }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
         transform="rotate(-90 20 20)"
       />
     </svg>
@@ -80,7 +80,7 @@ function StatusRing({ value, total, color }: { value: number; total: number; col
 const fadeUp = (i: number) => ({
   initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0 },
-  transition: { delay: i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+  transition: { delay: i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
 });
 
 export default function AdminAnalyticsPage() {
@@ -250,7 +250,7 @@ export default function AdminAnalyticsPage() {
                           style={{ backgroundColor: s.color }}
                           initial={{ width: 0 }}
                           animate={{ width: `${o!.totalAppointments > 0 ? (s.value / o!.totalAppointments) * 100 : 0}%` }}
-                          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                         />
                       </div>
                     </div>
@@ -297,7 +297,7 @@ export default function AdminAnalyticsPage() {
                                 className={`h-full rounded-full bg-gradient-to-r ${colors[i % colors.length]}`}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${pctVal}%` }}
-                                transition={{ duration: 0.6, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                                transition={{ duration: 0.6, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                               />
                             </div>
                           </div>
