@@ -52,6 +52,22 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
+  const notifRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifOpen && notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setNotifOpen(false);
+      }
+      if (userMenuOpen && userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [notifOpen, userMenuOpen]);
+
   // Empty deps — runs once on mount. routerRef/langRef give latest values without
   // causing fetchUser to be recreated on every render (which caused the infinite loop).
   const fetchUser = useCallback(async () => {
@@ -163,7 +179,7 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
               </a>
 
               {/* Notifications */}
-              <div className="relative">
+              <div className="relative" ref={notifRef}>
                 <button
                   onClick={() => { setNotifOpen(v => !v); setUserMenuOpen(false); }}
                   className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors relative"
@@ -204,11 +220,10 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
                     )}
                   </motion.div>
                 )}
-                {notifOpen && <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />}
               </div>
 
               {/* User Menu */}
-              <div className={`relative flex items-center gap-2.5 ${isAr ? 'pr-2.5 border-r' : 'pl-2.5 border-l'} border-slate-100`}>
+              <div className={`relative flex items-center gap-2.5 ${isAr ? 'pr-2.5 border-r' : 'pl-2.5 border-l'} border-slate-100`} ref={userMenuRef}>
                 <button
                   onClick={() => { setUserMenuOpen(v => !v); setNotifOpen(false); }}
                   className="flex items-center gap-2.5 cursor-pointer outline-none group"
@@ -263,7 +278,6 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
                     </div>
                   </motion.div>
                 )}
-                {userMenuOpen && <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />}
               </div>
             </div>
           </div>
