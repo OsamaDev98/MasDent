@@ -77,8 +77,8 @@ export default function LoginPage() {
               <span className="material-symbols-outlined text-white text-2xl">dentistry</span>
             </div>
             <div>
-              <p className="text-white font-black text-xl tracking-tight">{isAr ? 'ماس دينت' : 'Mas Dent'}</p>
-              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-widest">{isAr ? 'عيادة الأسنان' : 'Dental Clinic'}</p>
+              <p className="text-white font-black text-xl tracking-tight">{t('login.brand')}</p>
+              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-widest">{t('login.clinic')}</p>
             </div>
           </motion.div>
 
@@ -95,22 +95,17 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <h1 className="text-4xl xl:text-5xl font-black text-white leading-tight tracking-tight">
-                {isAr ? 'مرحباً بك في\nلوحة التحكم' : 'Welcome to\nYour Dashboard'}
+              <h1 className="text-4xl xl:text-5xl font-black text-white leading-tight tracking-tight whitespace-pre-line">
+                {t('login.hero.title')}
               </h1>
               <p className="text-white/60 mt-4 text-lg leading-relaxed max-w-sm">
-                {isAr
-                  ? 'أدر مواعيدك، راقب أداء العيادة، وتواصل مع مرضاك من مكان واحد.'
-                  : 'Manage appointments, track clinic performance, and connect with patients — all in one place.'}
+                {t('login.hero.desc')}
               </p>
             </div>
 
             {/* Feature pills */}
             <div className="flex flex-wrap gap-2 pt-2">
-              {(isAr
-                ? ['📅 إدارة المواعيد', '👥 سجلات المرضى', '📊 تقارير وتحليلات', '💳 المدفوعات']
-                : ['📅 Appointments', '👥 Patient Records', '📊 Analytics', '💳 Payments']
-              ).map((f, i) => (
+              {[t('login.feature.1'), t('login.feature.2'), t('login.feature.3'), t('login.feature.4')].map((f, i) => (
                 <motion.span
                   key={f}
                   initial={{ opacity: 0, y: 10 }}
@@ -131,7 +126,7 @@ export default function LoginPage() {
             transition={{ delay: 0.8 }}
             className="text-white/30 text-xs font-medium"
           >
-            {isAr ? '© 2026 ماس دينت — نصنع الابتسامات' : '© 2026 Mas Dent — Crafting Smiles'}
+            {t('login.copy')}
           </motion.div>
         </div>
       </div>
@@ -156,18 +151,18 @@ export default function LoginPage() {
               <span className="material-symbols-outlined text-white text-xl">dentistry</span>
             </div>
             <div>
-              <p className="font-black text-slate-900">{isAr ? 'ماس دينت' : 'Mas Dent'}</p>
-              <p className="text-slate-400 text-xs uppercase tracking-widest font-semibold">{isAr ? 'لوحة التحكم' : 'Dashboard'}</p>
+              <p className="font-black text-slate-900">{t('login.mobile.brand')}</p>
+              <p className="text-slate-400 text-xs uppercase tracking-widest font-semibold">{t('login.mobile.dashboard')}</p>
             </div>
           </div>
 
           {/* Header */}
           <div className="mb-8">
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-              {isAr ? 'تسجيل الدخول' : 'Sign in'}
+              {t('login.signin.title')}
             </h2>
             <p className="text-slate-500 mt-1.5">
-              {isAr ? 'أدخل بياناتك للوصول إلى لوحة التحكم' : 'Enter your credentials to access the dashboard'}
+              {t('login.signin.desc')}
             </p>
           </div>
 
@@ -262,7 +257,7 @@ export default function LoginPage() {
                   <span className="material-symbols-outlined animate-spin">progress_activity</span>
                 ) : (
                   <>
-                    <span>{t('login.submit')}</span>
+                    <span>{t('login.signin.title')}</span>
                     <span className={`material-symbols-outlined text-lg ${isAr ? 'rotate-180' : ''}`}>arrow_forward</span>
                   </>
                 )}

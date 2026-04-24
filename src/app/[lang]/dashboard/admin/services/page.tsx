@@ -7,11 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import DashboardShell from '@/components/dashboard/DashboardShell';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
@@ -19,21 +16,22 @@ interface Service {
   _id: string; name: string; nameAr: string; price: number;
   duration: number; category: string; description?: string; isActive: boolean;
 }
-
 const serviceSchema = z.object({
-  name:        z.string().min(2, 'Name required'),
-  nameAr:      z.string().min(2, 'Arabic name required'),
-  price:       z.number({ message: 'Price required' }).min(0),
-  duration:    z.number({ message: 'Duration required' }).min(5),
-  category:    z.string().min(1, 'Category required'),
-  description: z.string().optional(),
+  name: z.string().min(2), nameAr: z.string().min(2),
+  price: z.number().min(0), duration: z.number().min(5),
+  category: z.string().min(1), description: z.string().optional(),
 });
 type ServiceForm = z.infer<typeof serviceSchema>;
 
-const CATEGORIES = ['General', 'Cosmetic', 'Orthodontics', 'Surgery', 'Preventive', 'Emergency'];
-const CATEGORY_ICONS: Record<string, string> = {
-  General: 'medical_services', Cosmetic: 'auto_fix_high',
-  Orthodontics: 'straighten', Surgery: 'surgical', Preventive: 'health_and_safety', Emergency: 'emergency',
+const CATEGORIES = ['General','Cosmetic','Orthodontics','Surgery','Preventive','Emergency'];
+const CAT_ICONS: Record<string,string> = {
+  General:'medical_services', Cosmetic:'auto_fix_high', Orthodontics:'straighten',
+  Surgery:'surgical', Preventive:'health_and_safety', Emergency:'emergency',
+};
+const CAT_COLORS: Record<string,string> = {
+  General:'from-teal-500 to-teal-600', Cosmetic:'from-pink-500 to-rose-500',
+  Orthodontics:'from-blue-500 to-indigo-500', Surgery:'from-red-500 to-rose-600',
+  Preventive:'from-emerald-500 to-green-500', Emergency:'from-amber-500 to-orange-500',
 };
 
 export default function AdminServicesPage() {
@@ -43,48 +41,43 @@ export default function AdminServicesPage() {
   const { t } = useTranslation();
 
   const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Service | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [editing, setEditing]   = useState<Service | null>(null);
+  const [saving, setSaving]     = useState(false);
   const [catFilter, setCatFilter] = useState('all');
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ServiceForm>({ resolver: zodResolver(serviceSchema) });
 
   const load = useCallback(async () => {
-    try {
-      const r = await fetch('/api/services');
-      const j = await r.json();
-      setServices(j.services ?? []);
-    } finally { setLoading(false); }
+    try { const r = await fetch('/api/services'); const j = await r.json(); setServices(j.services ?? []); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   const onSave = async (data: ServiceForm) => {
     setSaving(true);
-    const tid = toast.loading(isAr ? 'جارٍ الحفظ...' : 'Saving...');
     try {
       if (editing) {
-        await fetch(`/api/services/${editing._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        toast.success(isAr ? 'تم تحديث الخدمة' : 'Service updated!', { id: tid });
+        await fetch(`/api/services/${editing._id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+        toast.success(isAr ? 'تم تحديث الخدمة' : 'Service updated!');
       } else {
-        await fetch('/api/services', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        toast.success(isAr ? 'تمت إضافة الخدمة' : 'Service added!', { id: tid });
+        await fetch('/api/services', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+        toast.success(isAr ? 'تمت إضافة الخدمة' : 'Service added!');
       }
       reset(); setShowForm(false); setEditing(null); load();
     } finally { setSaving(false); }
   };
 
   const toggleActive = async (s: Service) => {
-    await fetch(`/api/services/${s._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: !s.isActive }) });
+    await fetch(`/api/services/${s._id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ isActive: !s.isActive }) });
     load();
   };
 
   const deleteService = async (id: string) => {
-    const tid = toast.loading(isAr ? 'جارٍ الحذف...' : 'Deleting...');
-    await fetch(`/api/services/${id}`, { method: 'DELETE' });
-    toast.success(isAr ? 'تم حذف الخدمة' : 'Service deleted', { id: tid });
+    await fetch(`/api/services/${id}`, { method:'DELETE' });
+    toast.success(isAr ? 'تم حذف الخدمة' : 'Service deleted');
     load();
   };
 
@@ -101,146 +94,164 @@ export default function AdminServicesPage() {
 
   return (
     <DashboardShell
-      title={t('services_management') || (isAr ? 'إدارة الخدمات' : 'Services Management')}
-      subtitle={t('services_subtitle') || (isAr ? 'أضف وعدّل خدمات العيادة والأسعار' : 'Add and manage clinic services and pricing')}
+      title={isAr ? 'إدارة الخدمات' : 'Services Management'}
+      subtitle={isAr ? 'أضف وعدّل خدمات العيادة والأسعار' : 'Add and manage clinic services and pricing'}
       actions={
-        <Button onClick={() => { setEditing(null); reset(); setShowForm(true); }} className="gap-2">
+        <button onClick={() => { setEditing(null); reset(); setShowForm(true); }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-bold hover:bg-white/25 backdrop-blur-sm transition-all">
           <span className="material-symbols-outlined text-sm">add</span>
-          {t('new_service') || (isAr ? 'خدمة جديدة' : 'New Service')}
-        </Button>
+          {isAr ? 'خدمة جديدة' : 'New Service'}
+        </button>
       }
     >
-      {/* Category filter pills */}
-      <div className="flex gap-2 flex-wrap mb-6">
+      {/* Category filter bar */}
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-2 mb-5 flex gap-1 flex-wrap">
         {categories.map(c => (
           <button key={c} onClick={() => setCatFilter(c)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide cursor-pointer transition-all ${catFilter === c ? 'bg-primary-dark text-white shadow-md' : 'bg-white border border-black/10 text-slate-600 hover:border-primary/30'}`}>
+            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all ${catFilter === c
+              ? 'bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-md shadow-teal-500/25'
+              : 'text-slate-600 hover:bg-slate-50'}`}>
             {c === 'all' ? (isAr ? 'الكل' : 'All') : c}
           </button>
         ))}
       </div>
 
+      {/* Grid */}
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-5">
-                <div className="flex justify-between mb-3">
-                  <Skeleton className="w-11 h-11 rounded-xl" />
-                  <div className="flex gap-1"><Skeleton className="w-8 h-8 rounded-lg" /><Skeleton className="w-8 h-8 rounded-lg" /><Skeleton className="w-8 h-8 rounded-lg" /></div>
-                </div>
-                <Skeleton className="w-3/4 h-5 mb-2" />
-                <Skeleton className="w-1/4 h-4 mb-4" />
-                <Skeleton className="w-full h-8" />
-              </CardContent>
-            </Card>
-          ))}
+          {[...Array(6)].map((_,i) => <Skeleton key={i} className="h-44 rounded-3xl" />)}
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
-            {filtered.map((s, i) => (
-              <motion.div key={s._id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ delay: i * 0.04 }}>
-                <Card className={`transition-all overflow-hidden ${!s.isActive ? 'opacity-60 grayscale' : ''}`}>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-primary-dark text-xl">{CATEGORY_ICONS[s.category] ?? 'medical_services'}</span>
+            {filtered.map((s, i) => {
+              const grad = CAT_COLORS[s.category] ?? 'from-teal-500 to-teal-600';
+              return (
+                <motion.div key={s._id} initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }} transition={{ delay: i*0.04 }}>
+                  <div className={`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden group relative ${!s.isActive ? 'opacity-60 grayscale' : ''}`}>
+                    <div className={`h-1.5 w-full bg-gradient-to-r ${grad}`} />
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-md`}>
+                          <span className="material-symbols-outlined text-white text-xl">{CAT_ICONS[s.category] ?? 'medical_services'}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => toggleActive(s)}
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${s.isActive ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}>
+                            <span className="material-symbols-outlined text-sm">{s.isActive ? 'toggle_on' : 'toggle_off'}</span>
+                          </button>
+                          <button onClick={() => startEdit(s)}
+                            className="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center transition-colors">
+                            <span className="material-symbols-outlined text-sm">edit</span>
+                          </button>
+                          <button onClick={() => deleteService(s._id)}
+                            className="w-8 h-8 rounded-xl bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-600 flex items-center justify-center transition-colors">
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => toggleActive(s)} title={s.isActive ? 'Deactivate' : 'Activate'}
-                          className={`w-8 h-8 rounded-lg ${s.isActive ? 'text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700' : 'text-slate-400'}`}>
-                          <span className="material-symbols-outlined text-sm">{s.isActive ? 'toggle_on' : 'toggle_off'}</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => startEdit(s)} className="w-8 h-8 rounded-lg text-slate-500 hover:text-primary-dark">
-                          <span className="material-symbols-outlined text-sm">edit</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteService(s._id)} className="w-8 h-8 rounded-lg text-slate-400 hover:text-red-600">
-                          <span className="material-symbols-outlined text-sm">delete</span>
-                        </Button>
+
+                      <h3 className="font-black text-slate-900">{isAr ? s.nameAr : s.name}</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">{s.category}</p>
+                      {s.description && <p className="text-xs text-slate-500 mt-2 line-clamp-2">{s.description}</p>}
+
+                      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-50">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-100">
+                          <span className="material-symbols-outlined text-emerald-500 text-sm">payments</span>
+                          <span className="text-sm font-black text-emerald-700">${s.price}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-100">
+                          <span className="material-symbols-outlined text-blue-500 text-sm">schedule</span>
+                          <span className="text-sm font-bold text-blue-700">{s.duration}m</span>
+                        </div>
+                        {!s.isActive && (
+                          <span className="ml-auto text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200">
+                            {isAr ? 'غير نشط' : 'INACTIVE'}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <h3 className="font-black text-slate-900 text-base">{isAr ? s.nameAr : s.name}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">{s.category}</p>
-                    {s.description && <p className="text-xs text-slate-500 mt-2 line-clamp-2">{s.description}</p>}
-                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-black/5">
-                      <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 gap-1.5 px-3 py-1">
-                        <span className="material-symbols-outlined text-xs">payments</span>
-                        <span className="font-black text-sm">${s.price}</span>
-                      </Badge>
-                      <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50 gap-1.5 px-3 py-1">
-                        <span className="material-symbols-outlined text-xs">schedule</span>
-                        <span className="font-bold text-sm">{s.duration}m</span>
-                      </Badge>
-                      {!s.isActive && <Badge variant="outline" className="ml-auto text-[10px]">{isAr ? 'غير نشط' : 'INACTIVE'}</Badge>}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                  </div>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
           {filtered.length === 0 && !loading && (
-            <div className="sm:col-span-2 lg:col-span-3 bg-white rounded-2xl shadow-sm border border-black/5 flex flex-col items-center py-16">
-              <span className="material-symbols-outlined text-5xl text-slate-300 mb-3">medical_services</span>
+            <div className="sm:col-span-2 lg:col-span-3 bg-white rounded-3xl border border-slate-100 flex flex-col items-center py-20">
+              <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4">
+                <span className="material-symbols-outlined text-4xl text-slate-300">medical_services</span>
+              </div>
               <p className="font-bold text-slate-600">{isAr ? 'لا توجد خدمات' : 'No services yet'}</p>
-              <p className="text-slate-400 text-sm mt-1">{isAr ? 'أضف أول خدمة لعيادتك' : 'Add your first clinic service'}</p>
             </div>
           )}
         </div>
       )}
 
-      {/* Add/Edit modal */}
+      {/* Add/Edit Modal */}
       <AnimatePresence>
         {showForm && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md"
             onClick={() => { setShowForm(false); setEditing(null); }}>
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9 }}
+            <motion.div initial={{ scale:0.95, y:16 }} animate={{ scale:1, y:0 }} exit={{ scale:0.95, opacity:0 }}
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-3xl p-7 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-black text-slate-900">{editing ? (isAr ? 'تعديل الخدمة' : 'Edit Service') : (isAr ? 'إضافة خدمة جديدة' : 'New Service')}</h3>
-                <button onClick={() => { setShowForm(false); setEditing(null); }} className="text-slate-400 hover:text-slate-700 cursor-pointer"><span className="material-symbols-outlined">close</span></button>
+              className="bg-white rounded-[2rem] max-w-lg w-full shadow-2xl overflow-hidden max-h-[90vh]">
+
+              <div className="relative bg-gradient-to-br from-teal-600 to-teal-800 px-7 py-6 overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage:'radial-gradient(circle at 1px 1px,white 1px,transparent 0)', backgroundSize:'24px 24px' }} />
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-white">medical_services</span>
+                    </div>
+                    <h3 className="text-xl font-black text-white">{editing?(isAr?'تعديل الخدمة':'Edit Service'):(isAr?'خدمة جديدة':'New Service')}</h3>
+                  </div>
+                  <button onClick={() => { setShowForm(false); setEditing(null); }} className="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-colors">
+                    <span className="material-symbols-outlined text-sm">close</span>
+                  </button>
+                </div>
               </div>
-              <form onSubmit={handleSubmit(onSave)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="mb-2 block">{isAr ? 'الاسم (EN)' : 'Name (EN)'}</Label>
-                    <Input {...register('name')} className={errors.name ? 'border-red-500' : ''} />
-                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+
+              <div className="p-7 overflow-y-auto">
+                <form onSubmit={handleSubmit(onSave)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'الاسم (EN)':'Name (EN)'}</Label>
+                      <Input {...register('name')} className={`h-11 rounded-xl border-slate-200 bg-slate-50 ${errors.name?'border-red-400':''}`} />
+                    </div>
+                    <div>
+                      <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'الاسم (AR)':'Name (AR)'}</Label>
+                      <Input {...register('nameAr')} dir="rtl" className={`h-11 rounded-xl border-slate-200 bg-slate-50 ${errors.nameAr?'border-red-400':''}`} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'السعر ($)':'Price ($)'}</Label>
+                      <Input type="number" min="0" {...register('price',{valueAsNumber:true})} className="h-11 rounded-xl border-slate-200 bg-slate-50" />
+                    </div>
+                    <div>
+                      <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'المدة (دقيقة)':'Duration (min)'}</Label>
+                      <Input type="number" min="5" {...register('duration',{valueAsNumber:true})} className="h-11 rounded-xl border-slate-200 bg-slate-50" />
+                    </div>
                   </div>
                   <div>
-                    <Label className="mb-2 block">{isAr ? 'الاسم (AR)' : 'Name (AR)'}</Label>
-                    <Input {...register('nameAr')} dir="rtl" className={errors.nameAr ? 'border-red-500' : ''} />
-                    {errors.nameAr && <p className="text-red-500 text-xs mt-1">{errors.nameAr.message}</p>}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="mb-2 block">{isAr ? 'السعر ($)' : 'Price ($)'}</Label>
-                    <Input type="number" min="0" {...register('price', { valueAsNumber: true })} className={errors.price ? 'border-red-500' : ''} />
-                    {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price.message}</p>}
+                    <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'التصنيف':'Category'}</Label>
+                    <select {...register('category')} className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20">
+                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
                   </div>
                   <div>
-                    <Label className="mb-2 block">{isAr ? 'المدة (دقيقة)' : 'Duration (min)'}</Label>
-                    <Input type="number" min="5" {...register('duration', { valueAsNumber: true })} className={errors.duration ? 'border-red-500' : ''} />
-                    {errors.duration && <p className="text-red-500 text-xs mt-1">{errors.duration.message}</p>}
+                    <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'الوصف':'Description'}</Label>
+                    <textarea {...register('description')} rows={3}
+                      className="flex w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none" />
                   </div>
-                </div>
-                <div>
-                  <Label className="mb-2 block">{isAr ? 'التصنيف' : 'Category'}</Label>
-                  <select {...register('category')} className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <Label className="mb-2 block">{isAr ? 'الوصف' : 'Description'}</Label>
-                  <textarea {...register('description')} rows={3} className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-                </div>
-                <Button type="submit" disabled={saving} className="w-full gap-2">
-                  {saving ? <span className="material-symbols-outlined animate-spin">progress_activity</span> : editing ? (isAr ? 'حفظ التعديلات' : 'Save Changes') : (isAr ? 'إضافة الخدمة' : 'Add Service')}
-                </Button>
-              </form>
+                  <button type="submit" disabled={saving}
+                    className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-60">
+                    {saving ? <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                      : <><span className="material-symbols-outlined text-sm">{editing?'save':'add'}</span>{editing?(isAr?'حفظ التعديلات':'Save Changes'):(isAr?'إضافة الخدمة':'Add Service')}</>}
+                  </button>
+                </form>
+              </div>
             </motion.div>
           </motion.div>
         )}

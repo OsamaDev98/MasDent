@@ -8,11 +8,11 @@ import { useTranslation } from 'react-i18next';
 import { emitNewAppointment, type Appointment } from '@/lib/appointments';
 
 const schema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(7, 'Enter a valid phone number'),
-  date: z.string().min(1, 'Please select a date'),
-  service: z.string().min(1, 'Please select a service'),
+  name: z.string().min(2, 'form.error.name'),
+  email: z.string().email('form.error.email'),
+  phone: z.string().min(7, 'form.error.phone'),
+  date: z.string().min(1, 'form.error.date'),
+  service: z.string().min(1, 'form.error.service'),
   notes: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
@@ -26,17 +26,31 @@ const SERVICE_MAP: Record<string, string> = {
 };
 
 function FieldError({ msg }: { msg?: string }) {
+  const { t } = useTranslation();
   if (!msg) return null;
+
   return (
     <motion.p
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
       className="text-red-500 text-xs mt-1.5 font-semibold flex items-center gap-1 ltr:ml-2 rtl:mr-2"
     >
-      <span className="material-symbols-outlined text-[13px]">error</span>{msg}
+      <span className="material-symbols-outlined text-[13px]">error</span>{t(msg)}
     </motion.p>
   );
 }
+
+const AVAILABLE_TIMES = ["09:00 AM", "10:00 AM", "11:00 AM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"];
+const generateDays = () => {
+  const days = [];
+  const today = new Date();
+  for (let i = 1; i <= 14; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    if (d.getDay() !== 5) days.push(d); // Skip Friday
+  }
+  return days;
+};
 
 export default function AppointmentForm() {
   const { t, i18n } = useTranslation();
@@ -44,8 +58,24 @@ export default function AppointmentForm() {
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } =
     useForm<FormData>({ resolver: zodResolver(schema) });
+
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [step, setStep] = useState<'day' | 'time'>('day');
+  const [tempDay, setTempDay] = useState<Date | null>(null);
+  const [tempTime, setTempTime] = useState<string | null>(null);
+  const upcomingDays = React.useMemo(() => generateDays(), []);
+
+  const handleConfirmDateTime = () => {
+    if (tempDay && tempTime) {
+      const yyyy = tempDay.getFullYear();
+      const mm = String(tempDay.getMonth() + 1).padStart(2, '0');
+      const dd = String(tempDay.getDate()).padStart(2, '0');
+      setValue('date', `${yyyy}-${mm}-${dd} ${tempTime}`, { shouldValidate: true });
+      setIsDatePickerOpen(false);
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     setServerError(null);
@@ -56,13 +86,13 @@ export default function AppointmentForm() {
         body: JSON.stringify({ ...data, service: SERVICE_MAP[data.service] ?? data.service }),
       });
       const json = await res.json();
-      if (!res.ok) { setServerError(json.error || 'Submission failed'); return; }
+      if (!res.ok) { setServerError(json.error || t('form.error.submission')); return; }
       emitNewAppointment(json.appointment as Appointment);
       setSubmitted(true);
       reset();
       setTimeout(() => setSubmitted(false), 6000);
     } catch {
-      setServerError('Network error. Please try again.');
+      setServerError(t('form.error.network'));
     }
   };
 
@@ -135,15 +165,21 @@ export default function AppointmentForm() {
                 </motion.a>
               ))}
 
-              <motion.div variants={itemVariant} className="flex items-start gap-5 pt-2">
-                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0 mt-1">
+              <motion.a
+                href="https://www.google.com/maps/search/?api=1&query=MasDent+Dental+Clinic"
+                target="_blank"
+                rel="noopener noreferrer"
+                variants={itemVariant}
+                className="flex items-start gap-5 pt-2 group cursor-pointer hover:bg-white/10 p-3 -ml-3 rounded-2xl transition-colors"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0 mt-1 group-hover:bg-white group-hover:text-[#0a4f49] group-hover:shadow-lg transition-all duration-400">
                   <span className="material-symbols-outlined text-[24px]">location_on</span>
                 </div>
                 <div>
                   <p className="text-xs text-teal-200 font-bold uppercase tracking-wider mb-1">{t('app.left.address')}</p>
                   <p className="font-medium text-base leading-relaxed opacity-90" dangerouslySetInnerHTML={{ __html: t('app.left.address.val') }} />
                 </div>
-              </motion.div>
+              </motion.a>
             </div>
           </motion.div>
 
@@ -188,7 +224,7 @@ export default function AppointmentForm() {
               {/* Name */}
               <div className="relative group">
                 <input {...register('name')} type="text" id="name" className={inputCls(!!errors.name)} placeholder=" " />
-                <label htmlFor="name" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-0 font-bold pointer-events-none">{t('app.form.name')}</label>
+                <label htmlFor="name" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.name')}</label>
                 <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">person</span>
                 <FieldError msg={errors.name?.message} />
               </div>
@@ -196,7 +232,7 @@ export default function AppointmentForm() {
               {/* Email */}
               <div className="relative group">
                 <input {...register('email')} type="email" id="email" className={inputCls(!!errors.email)} placeholder=" " />
-                <label htmlFor="email" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-0 font-bold pointer-events-none">{t('app.form.email')}</label>
+                <label htmlFor="email" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.email')}</label>
                 <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">mail</span>
                 <FieldError msg={errors.email?.message} />
               </div>
@@ -204,23 +240,96 @@ export default function AppointmentForm() {
               {/* Phone */}
               <div className="relative group">
                 <input {...register('phone')} type="tel" id="tel" className={inputCls(!!errors.phone)} placeholder=" " />
-                <label htmlFor="tel" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-0 font-bold pointer-events-none">{t('app.form.phone')}</label>
+                <label htmlFor="tel" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.phone')}</label>
                 <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">phone_iphone</span>
                 <FieldError msg={errors.phone?.message} />
               </div>
 
-              {/* Date */}
+              {/* Date & Time Custom Modal */}
               <div className="relative group">
                 <input
                   {...register('date')} type="text" id="date"
-                  onFocus={(e) => { e.target.type = 'date'; try { (e.target as any).showPicker?.(); } catch { } }}
-                  onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-                  className={`${inputCls(!!errors.date)} [color-scheme:light] cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0`}
+                  readOnly
+                  onClick={() => { setIsDatePickerOpen(true); setStep('day'); setTempDay(null); setTempTime(null); }}
+                  className={`${inputCls(!!errors.date)} cursor-pointer caret-transparent`}
                   placeholder=" "
                 />
-                <label htmlFor="date" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-0 font-bold pointer-events-none">{t('app.form.date')}</label>
-                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">calendar_month</span>
+                <label htmlFor="date" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.date')}</label>
+                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">event_upcoming</span>
                 <FieldError msg={errors.date?.message} />
+
+                {/* DatePicker Dropdown */}
+                <AnimatePresence>
+                  {isDatePickerOpen && (
+                    <>
+                      {/* Invisible backdrop for closing when clicking outside */}
+                      <div className="fixed inset-0 z-40" onClick={() => setIsDatePickerOpen(false)} />
+
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        className="absolute top-full mt-2 left-0 right-0 z-50 bg-white rounded-3xl p-5 md:p-6 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.2)] border border-slate-100 flex flex-col max-h-[400px]"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setIsDatePickerOpen(false)}
+                          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors z-10"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">close</span>
+                        </button>
+                        <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-3 shrink-0 pr-12 rtl:pr-0 rtl:pl-12">
+                          <span className="material-symbols-outlined text-[#0a4f49]">event_upcoming</span>
+                          {step === 'day' ? t('form.select_date') : t('form.select_time')}
+                        </h3>
+
+                        {step === 'day' ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-2 pb-4 custom-scrollbar">
+                            {upcomingDays.map((d, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => { setTempDay(d); setStep('time'); }}
+                                className={`p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1 hover:shadow-md ${tempDay?.toDateString() === d.toDateString() ? 'border-[#0a4f49] bg-teal-50 shadow-sm' : 'border-slate-100 hover:border-teal-200'}`}
+                              >
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{d.toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', { weekday: 'short' })}</span>
+                                <span className="text-2xl font-black text-slate-800">{d.getDate()}</span>
+                                <span className="text-xs font-semibold text-slate-500">{d.toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', { month: 'short' })}</span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3 overflow-y-auto pr-2 pb-4 custom-scrollbar">
+                            {AVAILABLE_TIMES.map((t, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => setTempTime(t)}
+                                className={`p-4 rounded-2xl border-2 transition-all text-center font-bold text-lg hover:shadow-md ${tempTime === t ? 'border-[#0a4f49] bg-teal-50 text-[#0a4f49] shadow-sm' : 'border-slate-100 text-slate-600 hover:border-teal-200'}`}
+                              >
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-4 pt-4 border-t border-slate-100 flex gap-3 shrink-0">
+                          {step === 'time' && (
+                            <button type="button" onClick={() => setStep('day')} className="w-14 h-14 rounded-xl border-2 border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors shrink-0">
+                              <span className="material-symbols-outlined rtl:rotate-180">arrow_back</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => { handleConfirmDateTime(); }}
+                            disabled={step === 'day' || !tempTime}
+                            className="flex-1 h-14 rounded-xl bg-gradient-to-r from-[#0a4f49] to-[#0d6b63] hover:from-[#073d38] hover:to-[#0a4f49] text-white font-bold text-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:pointer-events-none shadow-lg shadow-teal-900/20"
+                          >
+                            {t('form.confirm')}
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Service */}
@@ -229,7 +338,7 @@ export default function AppointmentForm() {
                   <option value="" disabled className="text-slate-400"></option>
                   {Object.entries(SERVICE_MAP).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
-                <label htmlFor="service" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not([value=''])]:text-[10px] peer-[&:not([value=''])]:top-1.5 peer-[&:not([value=''])]:font-black z-0 font-bold pointer-events-none">{t('app.form.service')}</label>
+                <label htmlFor="service" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not([value=''])]:text-[10px] peer-[&:not([value=''])]:top-1.5 peer-[&:not([value=''])]:font-black z-20 font-bold pointer-events-none">{t('app.form.service')}</label>
                 <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 pointer-events-none">medical_services</span>
                 <span className="material-symbols-outlined absolute ltr:right-4 rtl:left-4 top-[18px] text-slate-400 z-20 pointer-events-none">expand_more</span>
                 <FieldError msg={errors.service?.message} />
@@ -238,7 +347,7 @@ export default function AppointmentForm() {
               {/* Notes */}
               <div className="relative group sm:col-span-2">
                 <textarea {...register('notes')} id="notes" className={`${inputCls(false)} resize-none`} placeholder=" " rows={3} />
-                <label htmlFor="notes" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-0 font-bold pointer-events-none">{t('app.form.notes')}</label>
+                <label htmlFor="notes" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.notes')}</label>
                 <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">edit_note</span>
               </div>
 

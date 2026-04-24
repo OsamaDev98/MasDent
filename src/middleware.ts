@@ -4,7 +4,8 @@ import { jwtVerify } from 'jose';
 const LOCALES = ['en', 'ar'];
 const DEFAULT_LOCALE = 'en';
 const AUTH_COOKIE = 'masdent_auth';
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-in-production-env';
+// JWT_SECRET must be set via environment variable — no hardcoded fallback
+const JWT_SECRET = process.env.JWT_SECRET ?? '';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

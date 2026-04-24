@@ -20,76 +20,100 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonth     = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-    const startOf7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const endOfLastMonth   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
-    // All appointments
-    const allAppts = await Appointment.find().lean();
-    const totalAppointments = allAppts.length;
-    const pending = allAppts.filter(a => a.status === 'pending').length;
-    const confirmed = allAppts.filter(a => a.status === 'confirmed').length;
-    const completed = allAppts.filter(a => a.status === 'completed').length;
-    const cancelled = allAppts.filter(a => a.status === 'cancelled').length;
-    const noShow = allAppts.filter(a => a.status === 'no-show').length;
+    // ── 1. Status counts via aggregation (no full collection load) ──
+    const statusAgg = await Appointment.aggregate([
+      {
+        $facet: {
+          overall: [
+            { $group: { _id: '$status', count: { $sum: 1 } } },
+          ],
+          thisMonth: [
+            { $match: { createdAt: { $gte: startOfMonth } } },
+            { $count: 'count' },
+          ],
+          lastMonth: [
+            { $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+            { $count: 'count' },
+          ],
+          paidCount: [
+            { $match: { paymentStatus: 'paid' } },
+            { $count: 'count' },
+          ],
+          topServices: [
+            { $group: { _id: '$service', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 5 },
+            { $project: { _id: 0, name: '$_id', count: 1 } },
+          ],
+        },
+      },
+    ]);
 
-    // This month
-    const thisMonth = allAppts.filter(a => new Date(a.createdAt) >= startOfMonth);
-    const lastMonth = allAppts.filter(a => {
-      const d = new Date(a.createdAt);
-      return d >= startOfLastMonth && d <= endOfLastMonth;
-    });
+    const fac = statusAgg[0];
+    const statusMap: Record<string, number> = {};
+    for (const s of fac.overall) statusMap[s._id] = s.count;
+    const totalAppointments = Object.values(statusMap).reduce((a: number, b) => a + (b as number), 0);
 
-    // Revenue (paid appointments)
-    const paidAppts = allAppts.filter(a => a.paymentStatus === 'paid');
+    // ── 2. Last 7 days trend via aggregation ──
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const trendAgg = await Appointment.aggregate([
+      { $match: { createdAt: { $gte: sevenDaysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-    // Most booked services
-    const serviceCounts: Record<string, number> = {};
-    allAppts.forEach(a => {
-      serviceCounts[a.service] = (serviceCounts[a.service] || 0) + 1;
-    });
-    const topServices = Object.entries(serviceCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, count]) => ({ name, count }));
-
-    // Last 7 days trend
+    // Build a full 7-day array, filling 0 for missing days
+    const trendMap: Record<string, number> = {};
+    for (const t of trendAgg) trendMap[t._id] = t.count;
     const last7Days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const dayStr = d.toISOString().split('T')[0];
-      const count = allAppts.filter(a => (a.createdAt as Date).toISOString().split('T')[0] === dayStr).length;
-      last7Days.push({ date: dayStr, count });
+      const key = d.toISOString().split('T')[0];
+      last7Days.push({ date: key, count: trendMap[key] ?? 0 });
     }
 
-    // Patients
-    const totalPatients = await Patient.countDocuments();
-    const newPatientsThisMonth = await Patient.countDocuments({ createdAt: { $gte: startOfMonth } });
+    // ── 3. Patients & staff counts ──
+    const [totalPatients, newPatientsThisMonth, totalStaff] = await Promise.all([
+      Patient.countDocuments(),
+      Patient.countDocuments({ createdAt: { $gte: startOfMonth } }),
+      User.countDocuments({ role: 'staff' }),
+    ]);
 
-    // Staff
-    const totalStaff = await User.countDocuments({ role: 'staff' });
-
-    // No-show rate
+    const noShow  = statusMap['no-show'] ?? 0;
     const noShowRate = totalAppointments > 0 ? Math.round((noShow / totalAppointments) * 100) : 0;
 
     return NextResponse.json({
       overview: {
         totalAppointments,
-        thisMonthAppointments: thisMonth.length,
-        lastMonthAppointments: lastMonth.length,
-        pending, confirmed, completed, cancelled, noShow,
-        paidCount: paidAppts.length,
+        thisMonthAppointments: fac.thisMonth[0]?.count ?? 0,
+        lastMonthAppointments: fac.lastMonth[0]?.count ?? 0,
+        pending:   statusMap['pending']   ?? 0,
+        confirmed: statusMap['confirmed'] ?? 0,
+        completed: statusMap['completed'] ?? 0,
+        cancelled: statusMap['cancelled'] ?? 0,
+        noShow,
+        paidCount: fac.paidCount[0]?.count ?? 0,
         noShowRate,
         totalPatients,
         newPatientsThisMonth,
         totalStaff,
       },
-      topServices,
+      topServices: fac.topServices,
       last7Days,
     });
   } catch (e: unknown) {
-    if (e instanceof Error && e.message === 'Forbidden') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (e instanceof Error && e.message === 'Forbidden')  return NextResponse.json({ error: 'Forbidden' },     { status: 403 });
+    if (e instanceof Error && e.message === 'Unauthorized') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    console.error('[GET /api/analytics]', e);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

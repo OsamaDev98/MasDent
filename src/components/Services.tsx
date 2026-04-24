@@ -1,16 +1,17 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, type Variants } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 
 const SERVICES = [
-  { icon: 'clean_hands',            key: 'item1' },
-  { icon: 'auto_awesome',           key: 'item2' },
-  { icon: 'dentistry',              key: 'item3' },
-  { icon: 'grid_view',              key: 'item4' },
-  { icon: 'health_and_safety',      key: 'item5' },
-  { icon: 'face_retouching_natural',key: 'item6' },
+  { icon: 'clean_hands', key: 'item1' },
+  { icon: 'auto_awesome', key: 'item2' },
+  { icon: 'dentistry', key: 'item3' },
+  { icon: 'grid_view', key: 'item4' },
+  { icon: 'health_and_safety', key: 'item5' },
+  { icon: 'face_retouching_natural', key: 'item6' },
 ] as const;
 
 const container: Variants = {
@@ -19,12 +20,30 @@ const container: Variants = {
 };
 
 const card: Variants = {
-  hidden:  { opacity: 0, y: 28, scale: 0.97 },
-  visible: { opacity: 1, y: 0,  scale: 1, transition: { duration: 0.55 } },
+  hidden: { opacity: 0, y: 28, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55 } },
 };
 
 export default function Services() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (selectedService) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedService]);
 
   return (
     <section className="py-24 px-4 relative z-10" id="services">
@@ -69,7 +88,8 @@ export default function Services() {
               key={key}
               variants={card}
               whileHover={{ y: -6, transition: { type: 'spring', stiffness: 400, damping: 18 } }}
-              className="group relative p-8 rounded-3xl bg-white border border-slate-100 hover:border-teal-100 shadow-sm hover:shadow-xl hover:shadow-teal-900/6 transition-all duration-400 overflow-hidden cursor-default"
+              onClick={() => setSelectedService(key)}
+              className="group relative p-8 rounded-3xl bg-white border border-slate-100 hover:border-teal-100 shadow-sm hover:shadow-xl hover:shadow-teal-900/6 transition-all duration-400 overflow-hidden cursor-pointer"
             >
               {/* BG gradient on hover */}
               <div className="absolute inset-0 bg-gradient-to-br from-teal-50/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 rounded-3xl" />
@@ -88,20 +108,83 @@ export default function Services() {
                 <h3 className="text-slate-900 text-lg font-bold mb-2.5 group-hover:text-[#0a4f49] transition-colors">
                   {t(`services.${key}.title`)}
                 </h3>
-                <p className="text-slate-500 text-sm leading-relaxed">
+                <p className="text-slate-500 text-sm leading-relaxed line-clamp-2">
                   {t(`services.${key}.desc`)}
                 </p>
 
                 {/* Learn more arrow */}
                 <div className="mt-5 flex items-center gap-1.5 text-xs font-bold text-slate-300 group-hover:text-[#0a4f49] transition-colors">
-                  <span className="uppercase tracking-wider">Learn more</span>
-                  <span className="material-symbols-outlined text-sm translate-x-0 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                  <span className="uppercase tracking-wider">{t('services.learn_more')}</span>
+                  <span className="material-symbols-outlined text-sm translate-x-0 group-hover:translate-x-1 transition-transform rtl:rotate-180">arrow_forward</span>
                 </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
       </div>
+
+      {mounted && typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {selectedService && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm ${isRtl ? 'font-arabic' : 'font-display'}`}
+              dir={isRtl ? 'rtl' : 'ltr'}
+              style={{ fontFamily: isRtl ? 'var(--font-cairo), sans-serif' : undefined }}
+              onClick={() => setSelectedService(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 md:p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
+              >
+                {/* Decorative top gradient */}
+                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#0a4f49] to-[#14b8a6]" />
+
+                <button
+                  onClick={() => setSelectedService(null)}
+                  className="absolute top-6 right-6 rtl:left-6 rtl:right-auto w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+
+                {(() => {
+                  const svc = SERVICES.find(s => s.key === selectedService);
+                  if (!svc) return null;
+                  return (
+                    <div>
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 text-[#0a4f49]">
+                        <span className="material-symbols-outlined text-3xl">{svc.icon}</span>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-black text-slate-900 mb-4">{t(`services.${svc.key}.title`)}</h3>
+                      <p className="text-slate-500 text-lg leading-relaxed mb-8">
+                        {t(`services.${svc.key}.desc`)}
+                      </p>
+
+                      <button
+                        onClick={() => {
+                          setSelectedService(null);
+                          document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="w-full h-14 rounded-xl bg-gradient-to-r from-[#0a4f49] to-[#0d6b63] hover:from-[#073d38] hover:to-[#0a4f49] text-white font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-teal-900/20 active:scale-[0.98]"
+                      >
+                        <span>{t('hero.cta1')}</span>
+                        <span className="material-symbols-outlined text-sm rtl:rotate-180">arrow_forward</span>
+                      </button>
+                    </div>
+                  );
+                })()}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </section>
   );
 }
+

@@ -1,8 +1,7 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 
 interface DashboardShellProps {
@@ -40,7 +39,12 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
   const pathname = usePathname();
   const lang = (params.lang as string) || 'en';
   const isAr = lang === 'ar';
-  const { t } = useTranslation();
+
+  // Use a ref so callbacks always have the latest router/lang without
+  // being listed as deps (router is not referentially stable in Next.js)
+  const routerRef = useRef(router);
+  const langRef   = useRef(lang);
+  useEffect(() => { routerRef.current = router; langRef.current = lang; });
 
   const [user, setUser] = useState<User | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
@@ -48,15 +52,21 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
+  // Empty deps — runs once on mount. routerRef/langRef give latest values without
+  // causing fetchUser to be recreated on every render (which caused the infinite loop).
   const fetchUser = useCallback(async () => {
     try {
       const r = await fetch('/api/auth/me');
-      if (!r.ok) { router.replace(`/${lang}/dashboard/login`); return; }
+      if (!r.ok) {
+        routerRef.current.replace(`/${langRef.current}/dashboard/login`);
+        return;
+      }
       setUser((await r.json()).user);
     } catch {
-      router.replace(`/${lang}/dashboard/login`);
+      routerRef.current.replace(`/${langRef.current}/dashboard/login`);
     }
-  }, [router, lang]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchPending = useCallback(async () => {
     try {
@@ -70,10 +80,10 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
     fetchPending();
   }, [fetchUser, fetchPending]);
 
-  const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.replace(`/${lang}/dashboard/login`);
-  };
+  const logout = useCallback(async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch { /* continue */ }
+    routerRef.current.replace(`/${langRef.current}/dashboard/login`);
+  }, []);
 
   // Build breadcrumbs from pathname (skip lang segment)
   const crumbs = pathname.split('/').filter(Boolean).slice(1);
@@ -95,7 +105,7 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
 
         {/* ── Top Bar ── */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm shadow-slate-200/50">
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm shadow-slate-200/30">
           <div className="flex items-center gap-3 px-5 h-[60px]">
 
             {/* Mobile menu trigger */}
@@ -169,7 +179,7 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
                   <motion.div
                     initial={{ opacity: 0, y: 8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    className={`absolute ${isAr ? 'left-0' : 'right-0'} top-12 w-72 bg-white rounded-2xl shadow-xl shadow-slate-200 border border-slate-100 p-4 z-50`}
+                    className={`absolute ${isAr ? 'left-0' : 'right-0'} top-12 w-72 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-slate-200 border border-slate-100 p-4 z-50`}
                   >
                     <p className="font-black text-slate-900 text-sm mb-3 flex items-center gap-2">
                       <span className="material-symbols-outlined text-[16px] text-slate-400">notifications</span>
@@ -219,22 +229,23 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
                   <motion.div
                     initial={{ opacity: 0, y: 8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    className={`absolute ${isAr ? 'left-0' : 'right-0'} top-12 w-60 bg-white rounded-2xl shadow-xl shadow-slate-200 border border-slate-100 overflow-hidden z-50`}
+                    className={`absolute ${isAr ? 'left-0' : 'right-0'} top-12 w-60 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden z-50`}
                   >
                     {/* Profile header */}
-                    <div className="px-4 py-4 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white font-black text-base shadow-md shadow-teal-900/20">
+                    <div className="px-4 py-4 bg-gradient-to-br from-teal-600 to-teal-800 relative overflow-hidden">
+                      <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '20px 20px' }} />
+                      <div className="flex items-center gap-3 relative z-10">
+                        <div className="w-11 h-11 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white font-black text-base">
                           {user.name[0]?.toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                          <p className="text-xs text-slate-500 truncate">{user.username}</p>
+                          <p className="text-sm font-bold text-white truncate">{user.name}</p>
+                          <p className="text-xs text-white/60 truncate">{user.username}</p>
                         </div>
                       </div>
-                      <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 border border-teal-100 text-[10px] font-bold text-teal-700 uppercase tracking-wide">
-                        <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                        {isAr ? (user.role === 'admin' ? 'مدير' : 'موظف') : user.role}
+                      <div className="mt-3 relative z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/20 text-[10px] font-bold text-white/90 uppercase tracking-wide">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+                        {isAr ? (user.role === 'admin' ? 'مدير' : 'موظف') : user.role} · {isAr ? 'نشط' : 'Active'}
                       </div>
                     </div>
 
@@ -258,16 +269,19 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
           </div>
         </header>
 
-        {/* ── Page Header ── */}
-        <div className="bg-white border-b border-slate-100 px-6 py-5">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        {/* ── Premium Page Header ── */}
+        <div className="relative bg-gradient-to-r from-teal-700 via-teal-800 to-teal-900 px-6 py-6 overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '28px 28px' }} />
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-teal-400/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 left-20 w-40 h-40 bg-teal-300/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 relative z-10">
             <div>
               <motion.h1
                 key={title}
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="text-xl font-black text-slate-900 tracking-tight"
+                className="text-2xl font-black text-white tracking-tight"
               >
                 {title}
               </motion.h1>
@@ -277,7 +291,7 @@ export default function DashboardShell({ children, title, subtitle, actions }: D
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-slate-400 text-sm mt-0.5 font-medium"
+                  className="text-teal-200/70 text-sm mt-1 font-medium"
                 >
                   {subtitle}
                 </motion.p>

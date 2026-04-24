@@ -1,13 +1,21 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-in-production-env';
-const secret = new TextEncoder().encode(JWT_SECRET);
+// Hard-fail at startup if JWT_SECRET is not set in production
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('FATAL: JWT_SECRET environment variable is not set. Set it in your .env.local or hosting platform.');
+  }
+  // Dev-only fallback (will warn in console)
+  console.warn('[auth] WARNING: JWT_SECRET is not set. Using insecure dev fallback — DO NOT use in production.');
+}
+const secret = new TextEncoder().encode(JWT_SECRET ?? 'dev-only-insecure-fallback-secret-32chars');
 
 export interface JWTPayload {
-  userId: string;
+  userId:   string;
   username: string;
-  name: string;
-  role: string;
+  name:     string;
+  role:     string;
 }
 
 export async function signToken(payload: JWTPayload): Promise<string> {

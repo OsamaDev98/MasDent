@@ -102,7 +102,7 @@ export default function Hero() {
                   transition={{ duration: 0.5, delay: 0.5 + i * 0.08 }}
                   className="flex flex-col"
                 >
-                  <span className="text-3xl font-black text-gradient leading-none">{stat.value}</span>
+                  <span className="text-3xl font-black text-gradient leading-none"><bdi>{stat.value}</bdi></span>
                   <span className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wider">
                     {isRtl ? stat.labelAr : stat.labelEn}
                   </span>

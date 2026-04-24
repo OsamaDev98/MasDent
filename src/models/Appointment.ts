@@ -35,5 +35,13 @@ const appointmentSchema = new Schema<IAppointment>(
   { timestamps: true }
 );
 
+// Indexes for the most common dashboard query patterns
+appointmentSchema.index({ status: 1, createdAt: -1 });          // filter by status
+appointmentSchema.index({ date: 1 });                            // filter by date
+appointmentSchema.index({ createdAt: -1 });                      // default sort
+appointmentSchema.index({ paymentStatus: 1, createdAt: -1 });    // finance page
+appointmentSchema.index({ patientId: 1 });                       // patient history
+appointmentSchema.index({ phone: 1 });                           // patient lookup by phone
+
 export const Appointment =
   models.Appointment || model<IAppointment>('Appointment', appointmentSchema);

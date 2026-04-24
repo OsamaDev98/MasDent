@@ -4,15 +4,18 @@ import { useParams } from 'next/navigation';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import DashboardShell from '@/components/dashboard/DashboardShell';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface QueuePatient {
   _id: string; name: string; service: string; phone: string;
-  time?: string; status: string; waitingSince?: Date; arrivalOrder?: number;
+  time?: string; status: string;
 }
+
+const fadeUp = (i: number) => ({
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { delay: i * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] as const },
+});
 
 export default function StaffQueuePage() {
   const params = useParams();
@@ -24,15 +27,15 @@ export default function StaffQueuePage() {
   const [allToday, setAllToday] = useState<QueuePatient[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
-
   const todayStr = new Date().toISOString().split('T')[0];
 
   const load = useCallback(async () => {
     try {
       const r = await fetch(`/api/appointments?date=${todayStr}`);
       const j = await r.json();
-      const appts: QueuePatient[] = (j.appointments ?? [])
-        .filter((a: QueuePatient) => a.status === 'confirmed' || a.status === 'pending');
+      const appts: QueuePatient[] = (j.appointments ?? []).filter(
+        (a: QueuePatient) => a.status === 'confirmed' || a.status === 'pending'
+      );
       setQueue(appts);
       setAllToday(j.appointments ?? []);
     } finally { setLoading(false); }
@@ -49,135 +52,130 @@ export default function StaffQueuePage() {
     load();
   };
 
-  const waiting = queue.length;
+  const waiting   = queue.length;
   const completed = allToday.filter(a => a.status === 'completed').length;
-  const noShow = allToday.filter(a => a.status === 'no-show').length;
+  const noShow    = allToday.filter(a => a.status === 'no-show').length;
 
-  const T = {
-    title:       isAr ? 'قائمة الانتظار' : 'Queue / Waiting List',
-    subtitle:    isAr ? 'المرضى الحاليون في العيادة' : 'Current patients in the clinic',
-    waiting:     isAr ? 'ينتظر' : 'Waiting',
-    completed:   isAr ? 'مكتمل' : 'Completed',
-    noShow:      isAr ? 'غائب' : 'No-show',
-    emptyQueue:  isAr ? 'قائمة الانتظار فارغة' : 'Queue is empty',
-    noAppts:     isAr ? 'لا توجد مواعيد اليوم' : 'No appointments today',
-    next:        isAr ? 'التالي' : 'NEXT',
-    arrive:      isAr ? 'حضر' : 'Mark Arrived',
-    complete:    isAr ? 'مكتمل' : 'Complete',
-    noShowBtn:   isAr ? 'غياب' : 'No-show',
-    call:        isAr ? 'اتصال' : 'Call',
-    refresh:     isAr ? 'تحديث' : 'Refresh',
-    todaySummary:isAr ? 'ملخص اليوم' : "Today's Summary",
-    time:        isAr ? 'الوقت' : 'Time',
-    patient:     isAr ? 'المريض' : 'Patient',
-    service:     isAr ? 'الخدمة' : 'Service',
-    status:      isAr ? 'الحالة' : 'Status',
-    actions:     isAr ? 'إجراءات' : 'Actions',
+  const STATUS_DOT: Record<string, string> = {
+    pending: 'bg-amber-400', confirmed: 'bg-teal-500',
+    completed: 'bg-emerald-500', cancelled: 'bg-red-400', 'no-show': 'bg-slate-400',
   };
 
   return (
     <DashboardShell
-      title={T.title}
-      subtitle={T.subtitle}
+      title={isAr ? 'قائمة الانتظار' : 'Queue / Waiting List'}
+      subtitle={isAr ? 'المرضى الحاليون في العيادة' : 'Live patient queue management'}
       actions={
-        <Button variant="outline" onClick={load} className="gap-2">
-          <span className="material-symbols-outlined text-sm">refresh</span>{T.refresh}
-        </Button>
+        <button onClick={load}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-bold hover:bg-white/25 backdrop-blur-sm transition-all">
+          <span className="material-symbols-outlined text-sm">refresh</span>
+          {isAr ? 'تحديث' : 'Refresh'}
+        </button>
       }
     >
-      {/* Stats */}
-      {loading ? (
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[
-            { icon: 'pending', label: T.waiting,   value: waiting,   color: 'from-amber-400 to-amber-500' },
-            { icon: 'task_alt', label: T.completed, value: completed, color: 'from-emerald-500 to-emerald-600' },
-            { icon: 'person_off', label: T.noShow, value: noShow,    color: 'from-slate-400 to-slate-500' },
-          ].map((s, i) => (
-            <motion.div key={s.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
-              <Card>
-                <CardContent className="p-5 flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center shrink-0 shadow-md`}>
-                    <span className="material-symbols-outlined text-white text-2xl">{s.icon}</span>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-black text-slate-900">{s.value}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      )}
+      {/* ── KPI Stats ── */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { icon: 'pending',    label: isAr ? 'ينتظر' : 'Waiting',   value: waiting,   gradient: 'from-amber-400 to-orange-500',  glow: 'shadow-amber-500/20' },
+          { icon: 'task_alt',   label: isAr ? 'مكتمل' : 'Completed', value: completed, gradient: 'from-emerald-500 to-green-500', glow: 'shadow-emerald-500/20' },
+          { icon: 'person_off', label: isAr ? 'غائب'  : 'No-show',   value: noShow,    gradient: 'from-slate-400 to-slate-500',   glow: 'shadow-slate-400/20' },
+        ].map((s, i) => (
+          <motion.div key={s.label} {...fadeUp(i)}>
+            {loading ? <Skeleton className="h-28 rounded-3xl" /> : (
+              <div className={`relative bg-white rounded-3xl p-5 border border-slate-100 shadow-lg ${s.glow} overflow-hidden group`}>
+                <div className={`absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-br ${s.gradient} opacity-10 rounded-full blur-xl`} />
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center shadow-md mb-4`}>
+                  <span className="material-symbols-outlined text-white text-xl">{s.icon}</span>
+                </div>
+                <p className="text-3xl font-black text-slate-900 tabular-nums leading-none">{s.value}</p>
+                <p className="text-xs font-semibold text-slate-500 mt-1.5">{s.label}</p>
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Live queue */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-black/5">
+      <div className="grid lg:grid-cols-3 gap-5">
+        {/* ── Live Queue ── */}
+        <motion.div {...fadeUp(3)} className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-50">
             <div>
-              <CardTitle className="font-black text-lg">{isAr ? 'قائمة الانتظار الحالية' : 'Current Queue'}</CardTitle>
-              <p className="text-xs text-slate-500 mt-0.5">{now.toLocaleTimeString(isAr ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+              <h3 className="font-black text-slate-900">{isAr ? 'قائمة الانتظار الحالية' : 'Current Queue'}</h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {now.toLocaleTimeString(isAr ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+              </p>
             </div>
-            <Badge variant="secondary" className="bg-amber-100 text-amber-700 text-lg py-1 px-3">
+            <div className={`px-3 py-1 rounded-full text-sm font-black border ${waiting > 0 ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
               {waiting}
-            </Badge>
-          </CardHeader>
+            </div>
+          </div>
 
-          <CardContent className="p-0">
+          <div className="flex-1">
             {loading ? (
-              <div className="p-6 space-y-4">
-                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+              <div className="p-6 space-y-3">
+                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 rounded-2xl" />)}
               </div>
             ) : queue.length === 0 ? (
-              <div className="flex flex-col items-center py-16 text-center px-6">
-                <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-3">
-                  <span className="material-symbols-outlined text-3xl text-slate-300">how_to_reg</span>
+              <div className="flex flex-col items-center py-20">
+                <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4">
+                  <span className="material-symbols-outlined text-4xl text-slate-300">how_to_reg</span>
                 </div>
-                <p className="font-bold text-slate-600">{T.emptyQueue}</p>
-                <p className="text-slate-400 text-sm mt-1">{isAr ? 'لا يوجد مرضى ينتظرون حالياً' : 'No patients currently waiting'}</p>
+                <p className="font-bold text-slate-600">{isAr ? 'قائمة الانتظار فارغة' : 'Queue is empty'}</p>
+                <p className="text-xs text-slate-400 mt-1">{isAr ? 'لا يوجد مرضى ينتظرون حالياً' : 'No patients currently waiting'}</p>
               </div>
             ) : (
-              <Reorder.Group axis="y" values={queue} onReorder={setQueue} className="divide-y divide-black/5">
+              <Reorder.Group axis="y" values={queue} onReorder={setQueue}>
                 <AnimatePresence>
                   {queue.map((p, i) => (
                     <Reorder.Item key={p._id} value={p}>
-                      <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ delay: i * 0.05 }}
-                        className={`flex items-center gap-4 px-6 py-4 ${i === 0 ? 'bg-primary/5' : 'hover:bg-slate-50'} transition-colors`}>
-                        {/* Position */}
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${i === 0 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600'}`}>
-                          {i + 1}
-                        </div>
+                      <motion.div
+                        initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
+                        transition={{ delay: i * 0.05 }}
+                        className={`flex items-center gap-4 px-6 py-4 border-b border-slate-50 transition-colors ${i === 0 ? 'bg-teal-50/50' : 'hover:bg-slate-50/60'}`}
+                      >
+                        {/* Position badge */}
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${
+                          i === 0 ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-md shadow-teal-200' : 'bg-slate-100 text-slate-600'
+                        }`}>{i + 1}</div>
+
                         {/* Avatar */}
-                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary-dark font-black flex items-center justify-center text-sm shrink-0">
-                          {p.name[0].toUpperCase()}
-                        </div>
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 transition-transform group-hover:scale-105 ${
+                          i === 0 ? 'bg-gradient-to-br from-teal-500/20 to-teal-600/10 border border-teal-200 text-teal-700' : 'bg-slate-100 text-slate-600'
+                        }`}>{p.name[0].toUpperCase()}</div>
+
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mb-0.5">
                             <p className="font-bold text-slate-900 text-sm truncate">{p.name}</p>
-                            {i === 0 && <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4">{T.next}</Badge>}
+                            {i === 0 && (
+                              <span className="text-[10px] font-black text-teal-700 bg-teal-100 border border-teal-200 px-2 py-0.5 rounded-full shrink-0 animate-pulse">
+                                {isAr ? 'التالي' : 'NEXT'}
+                              </span>
+                            )}
                           </div>
-                          <p className="text-[11px] text-slate-500 truncate">{p.service} {p.time ? `· ${p.time}` : ''}</p>
+                          <p className="text-[11px] text-slate-400 truncate">
+                            {p.service}{p.time ? ` · ${p.time}` : ''}
+                          </p>
                         </div>
+
                         {/* Actions */}
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <a href={`tel:${p.phone}`} title={T.call}
-                            className="h-8 w-8 flex items-center justify-center rounded-md text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                            <span className="material-symbols-outlined text-sm">call</span>
+                          <a href={`tel:${p.phone}`}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-500 transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">call</span>
                           </a>
-                          <Button variant="ghost" size="icon" onClick={() => patch(p._id, 'completed')} className="h-8 w-8 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50" title={T.complete}>
-                            <span className="material-symbols-outlined text-sm">check</span>
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => patch(p._id, 'no-show')} className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50" title={T.noShowBtn}>
-                            <span className="material-symbols-outlined text-sm">person_off</span>
-                          </Button>
+                          <button onClick={() => patch(p._id, 'completed')}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-500 transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">check</span>
+                          </button>
+                          <button onClick={() => patch(p._id, 'no-show')}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-500 transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">person_off</span>
+                          </button>
                         </div>
+
                         {/* Drag handle */}
-                        <div className="text-slate-300 cursor-grab active:cursor-grabbing px-2 flex items-center justify-center">
+                        <div className="text-slate-300 cursor-grab active:cursor-grabbing">
                           <span className="material-symbols-outlined text-base">drag_indicator</span>
                         </div>
                       </motion.div>
@@ -186,43 +184,45 @@ export default function StaffQueuePage() {
                 </AnimatePresence>
               </Reorder.Group>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
 
-        {/* Today summary */}
-        <Card>
-          <CardHeader className="pb-2 border-b border-black/5 flex flex-col justify-center">
-            <CardTitle className="font-black text-lg">{T.todaySummary}</CardTitle>
-            <p className="text-xs text-slate-500 mt-0.5">{new Date().toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-black/5">
-              {allToday.length === 0 ? (
-                <div className="flex flex-col items-center py-10 text-center px-4">
-                  <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">event_available</span>
-                  <p className="text-sm text-slate-500">{T.noAppts}</p>
+        {/* ── Today Summary ── */}
+        <motion.div {...fadeUp(4)} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+          <div className="px-5 py-4 border-b border-slate-50">
+            <h3 className="font-black text-slate-900">{isAr ? 'ملخص اليوم' : "Today's Summary"}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {new Date().toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {allToday.length === 0 ? (
+              <div className="flex flex-col items-center py-14">
+                <div className="w-16 h-16 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-3">
+                  <span className="material-symbols-outlined text-3xl text-slate-300">event_available</span>
                 </div>
-              ) : allToday.map((a, i) => {
-                const statusColors: Record<string, string> = {
-                  pending:'text-amber-600', confirmed:'text-teal-600',
-                  completed:'text-emerald-600', cancelled:'text-red-500', 'no-show':'text-slate-400',
-                };
-                return (
-                  <div key={a._id} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
-                    <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-bold flex items-center justify-center text-xs shrink-0">{i+1}</div>
+                <p className="text-sm font-bold text-slate-500">{isAr ? 'لا توجد مواعيد اليوم' : 'No appointments today'}</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-50">
+                {allToday.map((a, i) => (
+                  <div key={a._id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-slate-50/60 transition-colors">
+                    <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-500 font-black flex items-center justify-center text-xs shrink-0">{i + 1}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-900 truncate">{a.name}</p>
-                      <p className="text-[11px] text-slate-500 truncate">{a.service}</p>
+                      <p className="text-sm font-bold text-slate-900 truncate">{a.name}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{a.service}</p>
                     </div>
-                    <span className={`text-[11px] font-bold shrink-0 ${statusColors[a.status] ?? 'text-slate-400'}`}>
-                      {a.time || '—'}
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className={`w-2 h-2 rounded-full ${STATUS_DOT[a.status] ?? 'bg-slate-300'}`} />
+                      <span className="text-[11px] font-bold text-slate-600">{a.time || '—'}</span>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
       </div>
     </DashboardShell>
   );

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -7,14 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import DashboardShell from '@/components/dashboard/DashboardShell';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 const clinicSchema = z.object({
   clinicName:   z.string().min(2),
@@ -35,294 +31,376 @@ type ClinicForm = z.infer<typeof clinicSchema>;
 const DAYS_EN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const DAYS_AR = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
+const TABS = [
+  { id:'clinic'        as const, icon:'business',     en:'Clinic Info',    ar:'معلومات العيادة' },
+  { id:'schedule'      as const, icon:'schedule',      en:'Schedule',       ar:'ساعات العمل' },
+  { id:'notifications' as const, icon:'notifications', en:'Notifications',  ar:'الإشعارات' },
+];
+
+const INTEGRATIONS = [
+  { icon:'chat',           name:'WhatsApp Business API', status:'configure', en:'Available',   ar:'متاح',   badgeClass:'bg-emerald-50 border-emerald-200 text-emerald-700' },
+  { icon:'sms',            name:'SMS Notifications',     status:'soon',      en:'Coming Soon', ar:'قريباً', badgeClass:'bg-slate-50 border-slate-200 text-slate-500' },
+  { icon:'email',          name:'Email Service',         status:'soon',      en:'Coming Soon', ar:'قريباً', badgeClass:'bg-slate-50 border-slate-200 text-slate-500' },
+  { icon:'calendar_month', name:'Google Calendar',       status:'soon',      en:'Coming Soon', ar:'قريباً', badgeClass:'bg-slate-50 border-slate-200 text-slate-500' },
+];
+
+const DEFAULT_NOTIFICATIONS = [
+  { key:'reminder_24h', en:'Appointment reminder (24h before)', ar:'تذكير الموعد (قبل 24 ساعة)', enabled:true },
+  { key:'new_appt',     en:'New appointment confirmation',       ar:'تأكيد الموعد الجديد',         enabled:true },
+  { key:'cancellation', en:'Cancellation notification',          ar:'إشعار إلغاء الموعد',          enabled:false },
+  { key:'no_show',      en:'No-show alert',                      ar:'إشعار الغياب',                enabled:false },
+];
+
+const InputField = ({ label, icon, isAr, error, children }: { label:string; icon:string; isAr:boolean; error?:string; children: React.ReactNode }) => (
+  <div>
+    <Label className="block mb-1.5 text-xs font-black uppercase tracking-widest text-slate-500">{label}</Label>
+    <div className="relative">
+      <span className={`material-symbols-outlined absolute ${isAr?'right-3':'left-3'} top-1/2 -translate-y-1/2 text-slate-400 text-[18px]`}>{icon}</span>
+      <div className={isAr ? 'pr-10' : 'pl-10'}>{children}</div>
+    </div>
+    {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+  </div>
+);
+
 export default function AdminSettingsPage() {
   const params = useParams();
   const lang = (params.lang as string) || 'en';
   const isAr = lang === 'ar';
-  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<'clinic'|'schedule'|'notifications'>('clinic');
-  const [workDays, setWorkDays] = useState(['Sunday','Monday','Tuesday','Wednesday','Thursday']);
-  const [notifications, setNotifications] = useState([
-    { key: 'reminder_24h',  label: isAr ? 'تذكير الموعد (قبل 24 ساعة)' : 'Appointment reminder (24h before)', enabled: true },
-    { key: 'new_appt',      label: isAr ? 'تأكيد الموعد الجديد' : 'New appointment confirmation', enabled: true },
-    { key: 'cancellation',  label: isAr ? 'إشعار إلغاء الموعد' : 'Cancellation notification', enabled: false },
-    { key: 'no_show',       label: isAr ? 'إشعار الغياب' : 'No-show alert', enabled: false },
-  ]);
+  const [saving, setSaving]       = useState(false);
+  const [loading, setLoading]     = useState(true);
+  const [workDays, setWorkDays]   = useState(['Sunday','Monday','Tuesday','Wednesday','Thursday']);
+  const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS);
 
-  const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ClinicForm>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ClinicForm>({
     resolver: zodResolver(clinicSchema),
     defaultValues: {
-      clinicName:   'Mas Dent',
-      clinicNameAr: 'ماس دينت',
-      phone:        '',
-      email:        '',
-      address:      '',
-      addressAr:    '',
-      workStart:    '09:00',
-      workEnd:      '18:00',
-      workDays:     workDays,
-      breakStart:   '13:00',
-      breakEnd:     '14:00',
-      whatsapp:     '',
+      clinicName:'Mas Dent', clinicNameAr:'ماس دينت',
+      workStart:'09:00', workEnd:'18:00', breakStart:'13:00', breakEnd:'14:00',
+      workDays: ['Sunday','Monday','Tuesday','Wednesday','Thursday'],
     },
   });
 
+  // ── Load settings from API on mount ──
+  const loadSettings = useCallback(async () => {
+    try {
+      const r = await fetch('/api/settings');
+      if (!r.ok) return;
+      const { settings } = await r.json();
+      if (!settings) return;
+
+      reset({
+        clinicName:   settings.clinicName   || 'Mas Dent',
+        clinicNameAr: settings.clinicNameAr || 'ماس دينت',
+        phone:        settings.phone        || '',
+        email:        settings.email        || '',
+        address:      settings.address      || '',
+        addressAr:    settings.addressAr    || '',
+        workStart:    settings.workStart    || '09:00',
+        workEnd:      settings.workEnd      || '18:00',
+        breakStart:   settings.breakStart   || '13:00',
+        breakEnd:     settings.breakEnd     || '14:00',
+        whatsapp:     settings.whatsapp     || '',
+        workDays:     settings.workDays     || ['Sunday','Monday','Tuesday','Wednesday','Thursday'],
+      });
+
+      if (Array.isArray(settings.workDays)) setWorkDays(settings.workDays);
+
+      if (settings.notifications) {
+        setNotifications(prev =>
+          prev.map(n => ({ ...n, enabled: settings.notifications[n.key] ?? n.enabled }))
+        );
+      }
+    } catch {
+      /* silent — use defaults */
+    } finally {
+      setLoading(false);
+    }
+  }, [reset]);
+
+  useEffect(() => { loadSettings(); }, [loadSettings]);
+
+  // ── Save to API ──
   const onSave = async (data: ClinicForm) => {
-    const tid = toast.loading(isAr ? 'جارٍ الحفظ...' : 'Saving settings...');
-    console.log('Settings saved:', { ...data, workDays });
-    await new Promise(r => setTimeout(r, 600)); // simulate async
-    toast.success(isAr ? 'تم حفظ الإعدادات بنجاح' : 'Settings saved successfully!', { id: tid });
+    setSaving(true);
+    try {
+      const notifPayload = notifications.reduce<Record<string, boolean>>((acc, n) => {
+        acc[n.key] = n.enabled;
+        return acc;
+      }, {});
+
+      const r = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, workDays, notifications: notifPayload }),
+      });
+
+      if (!r.ok) {
+        const j = await r.json();
+        toast.error(j.error || (isAr ? 'فشل الحفظ' : 'Failed to save'));
+        return;
+      }
+      toast.success(isAr ? 'تم حفظ الإعدادات بنجاح ✔' : 'Settings saved successfully!');
+    } catch {
+      toast.error(isAr ? 'خطأ في الشبكة' : 'Network error');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const toggleDay = (day: string) => {
+  const toggleDay = (day: string) =>
     setWorkDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
-  };
+  const toggleNotif = (key: string) =>
+    setNotifications(prev => prev.map(n => n.key === key ? { ...n, enabled:!n.enabled } : n));
 
-  const toggleNotification = (key: string) => {
-    setNotifications(prev => prev.map(n => n.key === key ? { ...n, enabled: !n.enabled } : n));
-  };
-
-  const tabs = [
-    { id: 'clinic',        icon: 'business',       label: isAr ? 'معلومات العيادة' : 'Clinic Info' },
-    { id: 'schedule',      icon: 'schedule',        label: isAr ? 'ساعات العمل' : 'Schedule' },
-    { id: 'notifications', icon: 'notifications',   label: isAr ? 'الإشعارات' : 'Notifications' },
-  ] as const;
-
-  const integrations = [
-    { icon: 'chat',           name: 'WhatsApp Business API', status: 'configure', badge: isAr ? 'متاح' : 'Available', badgeVariant: 'default' as const },
-    { icon: 'sms',            name: 'SMS Notifications',     status: 'soon',      badge: isAr ? 'قريباً' : 'Soon',      badgeVariant: 'secondary' as const },
-    { icon: 'email',          name: 'Email Service',         status: 'soon',      badge: isAr ? 'قريباً' : 'Soon',      badgeVariant: 'secondary' as const },
-    { icon: 'calendar_month', name: 'Google Calendar',       status: 'soon',      badge: isAr ? 'قريباً' : 'Soon',      badgeVariant: 'secondary' as const },
-  ];
+  if (loading) {
+    return (
+      <DashboardShell
+        title={isAr ? 'إعدادات النظام' : 'System Settings'}
+        subtitle={isAr ? 'إدارة معلومات العيادة وإعدادات النظام' : 'Manage clinic information and system configuration'}
+      >
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-72 rounded-3xl" />
+          <Skeleton className="h-64 rounded-3xl" />
+          <Skeleton className="h-48 rounded-3xl" />
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell
       title={isAr ? 'إعدادات النظام' : 'System Settings'}
       subtitle={isAr ? 'إدارة معلومات العيادة وإعدادات النظام' : 'Manage clinic information and system configuration'}
     >
-      {/* Premium Tab Bar */}
-      <div className="flex gap-1 bg-slate-100 rounded-2xl p-1.5 mb-6 w-fit shadow-inner">
-        {tabs.map(tab => (
+      {/* Tab Bar */}
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-1.5 mb-6 flex gap-1 w-fit">
+        {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all ${
               activeTab === tab.id
-                ? 'bg-white text-slate-900 shadow-md'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                ? 'bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-md shadow-teal-500/25'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
             }`}>
             <span className="material-symbols-outlined text-base">{tab.icon}</span>
-            {tab.label}
+            {isAr ? tab.ar : tab.en}
           </button>
         ))}
       </div>
 
       <form onSubmit={handleSubmit(onSave)}>
-        {/* ── Clinic Info Tab ── */}
-        {activeTab === 'clinic' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>{isAr ? 'معلومات العيادة' : 'Clinic Information'}</CardTitle>
-                <CardDescription>{isAr ? 'البيانات الأساسية لعيادتك' : 'Basic details about your clinic'}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid sm:grid-cols-2 gap-5">
+        <AnimatePresence mode="wait">
+
+          {/* ── Clinic Info ── */}
+          {activeTab === 'clinic' && (
+            <motion.div key="clinic" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} className="space-y-5">
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined text-white">business</span>
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-900">{isAr?'معلومات العيادة':'Clinic Information'}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{isAr?'البيانات الأساسية لعيادتك':'Basic details about your clinic'}</p>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
                   {[
-                    { name: 'clinicName'   as const, label: isAr ? 'اسم العيادة (EN)' : 'Clinic Name (EN)' },
-                    { name: 'clinicNameAr' as const, label: isAr ? 'اسم العيادة (AR)' : 'Clinic Name (AR)', dir: 'rtl' },
-                    { name: 'phone'        as const, label: isAr ? 'رقم الهاتف' : 'Phone Number', type: 'tel' },
-                    { name: 'email'        as const, label: isAr ? 'البريد الإلكتروني' : 'Email', type: 'email' },
-                    { name: 'whatsapp'     as const, label: isAr ? 'واتساب (اختياري)' : 'WhatsApp (optional)', type: 'tel' },
+                    { name:'clinicName'   as const, label:isAr?'اسم العيادة (EN)':'Clinic Name (EN)', icon:'business', type:'text' },
+                    { name:'clinicNameAr' as const, label:isAr?'اسم العيادة (AR)':'Clinic Name (AR)', icon:'business', type:'text' },
+                    { name:'phone'        as const, label:isAr?'رقم الهاتف':'Phone Number',           icon:'call',     type:'tel' },
+                    { name:'email'        as const, label:isAr?'البريد الإلكتروني':'Email',            icon:'mail',     type:'email' },
+                    { name:'whatsapp'     as const, label:isAr?'واتساب (اختياري)':'WhatsApp',          icon:'chat',     type:'tel' },
                   ].map(f => (
-                    <div key={f.name} className="space-y-1.5">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">{f.label}</Label>
-                      <Input
-                        type={f.type ?? 'text'}
-                        {...register(f.name)}
-                        dir={f.dir}
-                        className={errors[f.name] ? 'border-red-400 focus-visible:ring-red-500/20' : ''}
-                      />
-                      {errors[f.name] && <p className="text-red-500 text-xs">{String(errors[f.name]?.message)}</p>}
-                    </div>
+                    <InputField key={f.name} label={f.label} icon={f.icon} isAr={isAr} error={errors[f.name]?.message}>
+                      <Input type={f.type} {...register(f.name)}
+                        className={`h-11 rounded-xl border-slate-200 bg-slate-50 ${errors[f.name]?'border-red-400':''}`} />
+                    </InputField>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>{isAr ? 'العنوان' : 'Address'}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">{isAr ? 'العنوان (EN)' : 'Address (EN)'}</Label>
-                    <Textarea {...register('address')} rows={3} className="resize-none" />
+              {/* Address */}
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined text-white">location_on</span>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">{isAr ? 'العنوان (AR)' : 'Address (AR)'}</Label>
-                    <Textarea {...register('addressAr')} rows={3} dir="rtl" className="resize-none" />
+                  <h3 className="font-black text-slate-900">{isAr?'العنوان':'Address'}</h3>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-black uppercase tracking-widest text-slate-500">{isAr?'العنوان (EN)':'Address (EN)'}</Label>
+                    <textarea {...register('address')} rows={3} className={`flex w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none ${errors.address?'border-red-400':'border-slate-200'}`} />
+                    {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-black uppercase tracking-widest text-slate-500">{isAr?'العنوان (AR)':'Address (AR)'}</Label>
+                    <textarea {...register('addressAr')} rows={3} dir="rtl" className={`flex w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none ${errors.addressAr?'border-red-400':'border-slate-200'}`} />
+                    {errors.addressAr && <p className="text-red-500 text-xs mt-1">{errors.addressAr.message}</p>}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Integrations */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>{isAr ? 'التكاملات' : 'Integrations'}</CardTitle>
-                <CardDescription>{isAr ? 'ربط العيادة بخدمات خارجية' : 'Connect your clinic to external services'}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {integrations.map(int => (
-                    <div key={int.name}
-                      className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
-                        int.status === 'configure'
-                          ? 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100 cursor-pointer'
-                          : 'border-slate-200 bg-slate-50 opacity-70'
-                      }`}>
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        int.status === 'configure' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
-                      }`}>
-                        <span className="material-symbols-outlined text-xl">{int.icon}</span>
+              {/* Integrations */}
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined text-white">hub</span>
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-900">{isAr?'التكاملات':'Integrations'}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{isAr?'ربط العيادة بخدمات خارجية':'Connect your clinic to external services'}</p>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {INTEGRATIONS.map(int => (
+                    <div key={int.name} className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${int.status==='configure'?'border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 cursor-pointer':'border-slate-100 bg-slate-50/50 opacity-70'}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${int.status==='configure'?'bg-emerald-100 text-emerald-700':'bg-slate-100 text-slate-400'}`}>
+                        <span className="material-symbols-outlined">{int.icon}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-sm text-slate-800">{int.name}</p>
-                        <p className="text-[11px] text-slate-500">{int.status === 'configure' ? (isAr ? 'انقر للإعداد' : 'Click to configure') : (isAr ? 'قريباً' : 'Coming soon')}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">{int.status==='configure'?(isAr?'انقر للإعداد':'Click to configure'):(isAr?'قريباً':'Coming soon')}</p>
                       </div>
-                      <Badge variant={int.badgeVariant} className="text-[10px] shrink-0">{int.badge}</Badge>
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border shrink-0 ${int.badgeClass}`}>
+                        {isAr ? int.ar : int.en}
+                      </span>
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+              </div>
+            </motion.div>
+          )}
 
-        {/* ── Schedule Tab ── */}
-        {activeTab === 'schedule' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>{isAr ? 'ساعات العمل' : 'Working Hours'}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">{isAr ? 'وقت البدء' : 'Start Time'}</Label>
-                    <Input type="time" {...register('workStart')} />
+          {/* ── Schedule ── */}
+          {activeTab === 'schedule' && (
+            <motion.div key="schedule" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} className="space-y-5">
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined text-white">schedule</span>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">{isAr ? 'وقت الانتهاء' : 'End Time'}</Label>
-                    <Input type="time" {...register('workEnd')} />
-                  </div>
+                  <h3 className="font-black text-slate-900">{isAr?'ساعات العمل':'Working Hours'}</h3>
                 </div>
-
-                <Separator />
-
-                <div>
-                  <p className="text-sm font-bold text-slate-700 mb-3">{isAr ? 'أيام العمل' : 'Working Days'}</p>
+                <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                  {[
+                    { name:'workStart' as const, label:isAr?'وقت البدء':'Start Time' },
+                    { name:'workEnd'   as const, label:isAr?'وقت الانتهاء':'End Time' },
+                  ].map(f => (
+                    <div key={f.name}>
+                      <Label className="block mb-1.5 text-xs font-black uppercase tracking-widest text-slate-500">{f.label}</Label>
+                      <Input type="time" {...register(f.name)} className="h-11 rounded-xl border-slate-200 bg-slate-50" />
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-slate-50 pt-5">
+                  <p className="text-sm font-black text-slate-700 mb-3">{isAr?'أيام العمل':'Working Days'}</p>
                   <div className="flex flex-wrap gap-2">
                     {DAYS_EN.map((day, i) => (
-                      <button
-                        key={day} type="button" onClick={() => toggleDay(day)}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all border ${
+                      <button key={day} type="button" onClick={() => toggleDay(day)}
+                        className={`px-4 py-2 rounded-2xl text-sm font-bold transition-all border ${
                           workDays.includes(day)
-                            ? 'bg-primary text-white border-primary shadow-md'
-                            : 'bg-white border-slate-200 text-slate-500 hover:border-primary/30'
+                            ? 'bg-gradient-to-r from-teal-600 to-teal-500 text-white border-teal-600 shadow-md shadow-teal-500/25'
+                            : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
                         }`}>
-                        {isAr ? DAYS_AR[i] : day.slice(0, 3)}
+                        {isAr ? DAYS_AR[i] : day.slice(0,3)}
                       </button>
                     ))}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>{isAr ? 'وقت الاستراحة' : 'Break Time'}</CardTitle>
-                <CardDescription>{isAr ? 'فترة راحة يومية اختيارية' : 'Optional daily rest period'}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">{isAr ? 'بداية الاستراحة' : 'Break Start'}</Label>
-                    <Input type="time" {...register('breakStart')} />
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined text-white">coffee</span>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">{isAr ? 'نهاية الاستراحة' : 'Break End'}</Label>
-                    <Input type="time" {...register('breakEnd')} />
+                  <div>
+                    <h3 className="font-black text-slate-900">{isAr?'وقت الاستراحة':'Break Time'}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{isAr?'فترة راحة يومية اختيارية':'Optional daily rest period'}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {[
+                    { name:'breakStart' as const, label:isAr?'بداية الاستراحة':'Break Start' },
+                    { name:'breakEnd'   as const, label:isAr?'نهاية الاستراحة':'Break End' },
+                  ].map(f => (
+                    <div key={f.name}>
+                      <Label className="block mb-1.5 text-xs font-black uppercase tracking-widest text-slate-500">{f.label}</Label>
+                      <Input type="time" {...register(f.name)} className="h-11 rounded-xl border-slate-200 bg-slate-50" />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            <Card className="border-amber-200 bg-amber-50/50">
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+              <div className="bg-amber-50 rounded-3xl border border-amber-200 p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-amber-600">beach_access</span>
                 </div>
-                <div>
-                  <p className="font-bold text-slate-800 text-sm">{isAr ? 'الإجازات والعطل' : 'Holidays & Closures'}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{isAr ? 'إدارة أيام الإغلاق الرسمية — قريباً.' : 'Manage official holidays and closure days — coming soon.'}</p>
+                <div className="flex-1">
+                  <p className="font-bold text-slate-800 text-sm">{isAr?'الإجازات والعطل':'Holidays & Closures'}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{isAr?'إدارة أيام الإغلاق الرسمية — قريباً.':'Manage official holidays and closure days — coming soon.'}</p>
                 </div>
-                <Badge variant="secondary" className="ms-auto text-[10px]">{isAr ? 'قريباً' : 'Soon'}</Badge>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+                <span className="text-[10px] font-black px-2.5 py-1 rounded-lg border bg-amber-100 border-amber-300 text-amber-700 shrink-0">{isAr?'قريباً':'Soon'}</span>
+              </div>
+            </motion.div>
+          )}
 
-        {/* ── Notifications Tab ── */}
-        {activeTab === 'notifications' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>{isAr ? 'إعدادات الإشعارات' : 'Notification Settings'}</CardTitle>
-                <CardDescription>{isAr ? 'تخصيص التنبيهات والرسائل التلقائية' : 'Customize alerts and automated messages'}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {notifications.map((n, i) => (
-                  <div key={n.key}>
-                    <div className="flex items-center justify-between py-4">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{n.label}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          {n.enabled ? (isAr ? 'مفعّل' : 'Active') : (isAr ? 'معطّل' : 'Inactive')}
-                        </p>
-                      </div>
-                      {/* Premium Toggle */}
-                      <button
-                        type="button"
-                        onClick={() => toggleNotification(n.key)}
-                        className={`relative w-11 h-6 rounded-full cursor-pointer transition-colors duration-300 shrink-0 ${
-                          n.enabled ? 'bg-primary' : 'bg-slate-200'
-                        }`}
-                        aria-label={`Toggle ${n.label}`}
-                      >
-                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${
-                          n.enabled ? 'left-6' : 'left-1'
-                        }`} />
-                      </button>
-                    </div>
-                    {i < notifications.length - 1 && <Separator />}
+          {/* ── Notifications ── */}
+          {activeTab === 'notifications' && (
+            <motion.div key="notifications" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}>
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-50">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined text-white">notifications</span>
                   </div>
-                ))}
-                <p className="text-xs text-slate-400 pt-3">
-                  {isAr ? '* تتطلب الإشعارات ربط خدمة واتساب أو بريد إلكتروني.' : '* Notifications require WhatsApp or email service integration.'}
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+                  <div>
+                    <h3 className="font-black text-slate-900">{isAr?'إعدادات الإشعارات':'Notification Settings'}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{isAr?'تخصيص التنبيهات والرسائل التلقائية':'Customize alerts and automated messages'}</p>
+                  </div>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {notifications.map((n, i) => (
+                    <motion.div key={n.key} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.06 }}
+                      className="flex items-center justify-between px-6 py-4 hover:bg-slate-50/60 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${n.enabled?'bg-teal-50 text-teal-600':'bg-slate-100 text-slate-400'}`}>
+                          <span className="material-symbols-outlined text-[18px]">notifications</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{isAr ? n.ar : n.en}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{n.enabled?(isAr?'مفعّل':'Active'):(isAr?'معطّل':'Inactive')}</p>
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => toggleNotif(n.key)}
+                        className={`relative w-12 h-6 rounded-full transition-colors duration-300 shrink-0 ${n.enabled?'bg-teal-500':'bg-slate-200'}`}
+                        aria-label={n.en}>
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 ${n.enabled?'left-7':'left-1'}`} />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-50">
+                  <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm text-slate-400">info</span>
+                    {isAr?'* تتطلب الإشعارات ربط خدمة واتساب أو بريد إلكتروني.':'* Notifications require WhatsApp or email service integration.'}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Save Button */}
-        <div className="mt-6 flex items-center gap-4">
-          <Button type="submit" className="gap-2 px-8">
-            <span className="material-symbols-outlined text-sm">save</span>
-            {isAr ? 'حفظ الإعدادات' : 'Save Settings'}
-          </Button>
+        <div className="mt-6">
+          <button type="submit" disabled={saving}
+            className="flex items-center gap-2 px-8 h-12 rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white font-bold text-sm shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-60">
+            {saving
+              ? <><span className="material-symbols-outlined animate-spin">progress_activity</span>{isAr?'جارٍ الحفظ...':'Saving...'}</>
+              : <><span className="material-symbols-outlined text-sm">save</span>{isAr?'حفظ الإعدادات':'Save Settings'}</>}
+          </button>
         </div>
       </form>
     </DashboardShell>
