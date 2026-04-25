@@ -86,54 +86,48 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // ── Status counts + top services via single aggregation ──
-  const statusAgg = await Appointment.aggregate([
-    {
-      $facet: {
-        overall: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
-        thisMonth: [
-          { $match: { createdAt: { $gte: startOfMonth } } },
-          { $count: 'count' },
-        ],
-        lastMonth: [
-          { $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
-          { $count: 'count' },
-        ],
-        paidCount: [
-          { $match: { paymentStatus: 'paid' } },
-          { $count: 'count' },
-        ],
-        topServices: [
-          { $group: { _id: '$service', count: { $sum: 1 } } },
-          { $sort: { count: -1 } },
-          { $limit: 5 },
-          { $project: { _id: 0, name: '$_id', count: 1 } },
-        ],
+  // ── Run both aggregations + 3 counts IN PARALLEL — single DB round-trip ──
+  const [
+    statusAgg,
+    trendAgg,
+    totalPatients,
+    newPatientsThisMonth,
+    totalStaff,
+  ] = await Promise.all([
+    Appointment.aggregate([
+      {
+        $facet: {
+          overall:     [{ $group: { _id: '$status', count: { $sum: 1 } } }],
+          thisMonth:   [{ $match: { createdAt: { $gte: startOfMonth } } }, { $count: 'count' }],
+          lastMonth:   [{ $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } }, { $count: 'count' }],
+          paidCount:   [{ $match: { paymentStatus: 'paid' } }, { $count: 'count' }],
+          topServices: [
+            { $group: { _id: '$service', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 5 },
+            { $project: { _id: 0, name: '$_id', count: 1 } },
+          ],
+        },
       },
-    },
+    ]),
+    Appointment.aggregate([
+      { $match: { createdAt: { $gte: sevenDaysAgo } } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]),
+    Patient.countDocuments(),
+    Patient.countDocuments({ createdAt: { $gte: startOfMonth } }),
+    User.countDocuments({ role: 'staff' }),
   ]);
 
   const fac = statusAgg[0];
   const statusMap: Record<string, number> = {};
   for (const s of fac.overall) statusMap[s._id] = s.count;
   const totalAppointments = Object.values(statusMap).reduce(
-    (a: number, b) => a + (b as number),
-    0,
+    (a: number, b) => a + (b as number), 0,
   );
-
-  // ── Last 7 days trend ──
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const trendAgg = await Appointment.aggregate([
-    { $match: { createdAt: { $gte: sevenDaysAgo } } },
-    {
-      $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-        count: { $sum: 1 },
-      },
-    },
-    { $sort: { _id: 1 } },
-  ]);
 
   const trendMap: Record<string, number> = {};
   for (const t of trendAgg) trendMap[t._id] = t.count;
@@ -144,23 +138,17 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     last7Days.push({ date: key, count: trendMap[key] ?? 0 });
   }
 
-  // ── Patient + staff counts ──
-  const [totalPatients, newPatientsThisMonth, totalStaff] = await Promise.all([
-    Patient.countDocuments(),
-    Patient.countDocuments({ createdAt: { $gte: startOfMonth } }),
-    User.countDocuments({ role: 'staff' }),
-  ]);
-
   const noShow = statusMap['no-show'] ?? 0;
-  const noShowRate =
-    totalAppointments > 0 ? Math.round((noShow / totalAppointments) * 100) : 0;
+  const noShowRate = totalAppointments > 0
+    ? Math.round((noShow / totalAppointments) * 100)
+    : 0;
 
   return {
     overview: {
       totalAppointments,
       thisMonthAppointments: fac.thisMonth[0]?.count ?? 0,
       lastMonthAppointments: fac.lastMonth[0]?.count ?? 0,
-      pending: statusMap['pending'] ?? 0,
+      pending:   statusMap['pending']   ?? 0,
       confirmed: statusMap['confirmed'] ?? 0,
       completed: statusMap['completed'] ?? 0,
       cancelled: statusMap['cancelled'] ?? 0,
@@ -181,15 +169,23 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
 export async function getStaffOverviewData(): Promise<StaffOverviewData> {
   await connectDB();
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
 
-  // Fetch all appointments — staff sees everything for today + recent context
-  const raw = await Appointment.find({})
-    .sort({ createdAt: -1 })
+  // Scope query to ±7 days window — prevents full collection scan as DB grows.
+  // Staff overview only needs today + nearby context, not all historical records.
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const sevenDaysAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const windowStart = sevenDaysAgo.toISOString().split('T')[0];
+  const windowEnd   = sevenDaysAhead.toISOString().split('T')[0];
+
+  const raw = await Appointment.find({
+    date: { $gte: windowStart, $lte: windowEnd },
+  })
+    .sort({ date: 1, createdAt: -1 })
     .select('name phone service date time status paymentStatus')
     .lean();
 
-  // Serialise: convert ObjectId → string, Date → ISO string
   const appointments: SerializedAppointment[] = raw.map((a) => ({
     _id: (a._id as { toString(): string }).toString(),
     name: a.name,

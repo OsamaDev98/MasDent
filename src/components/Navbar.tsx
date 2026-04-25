@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -10,10 +10,11 @@ const NAV_ITEMS = ['home', 'services', 'team', 'contact'] as const;
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const params = useParams();
-  const router = useRouter();
-  const lang = (params?.lang as string) || 'en';
+
+  // Derive lang from i18n (instant) rather than URL param
+  const lang = (i18n.language as string) || (params?.lang as string) || 'en';
   const isAr = lang === 'ar';
 
   useEffect(() => {
@@ -22,7 +23,26 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const switchLang = () => router.push(`/${lang === 'en' ? 'ar' : 'en'}`);
+  // ── Instant language switch — NO page navigation ──────────────────────────
+  // Both locale JSON files are already bundled. Switching is a pure in-memory
+  // operation: change i18next language + update <html> dir/lang attributes.
+  // We also update the URL in the address bar (pushState) so links remain correct,
+  // but Next.js does NOT re-render or fetch anything — zero network cost.
+  const switchLang = useCallback(() => {
+    const next = isAr ? 'en' : 'ar';
+
+    // 1. Switch i18next — all useTranslation() calls update synchronously
+    i18n.changeLanguage(next);
+
+    // 2. Update <html> dir & lang
+    document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = next;
+
+    // 3. Swap URL without navigation (keeps scroll position)
+    const current = window.location.pathname;
+    const newPath = current.replace(/^\/(en|ar)/, `/${next}`);
+    window.history.pushState(null, '', newPath);
+  }, [isAr, i18n]);
 
   return (
     <motion.header
@@ -73,11 +93,12 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-2.5">
-            {/* Lang Toggle */}
+            {/* Lang Toggle — instant, no navigation */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={switchLang}
+              aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
               className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-[11px] font-black tracking-widest text-slate-700 transition-all border border-slate-200/60"
             >
               {isAr ? 'EN' : 'AR'}
