@@ -1,7 +1,7 @@
 // Shared client-side types and event emitter
 // Actual data storage is now handled via MongoDB API routes
 
-export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled';
+export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
 
 export interface Appointment {
   _id: string;

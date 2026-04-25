@@ -177,7 +177,11 @@ export default function AppointmentForm() {
                 </div>
                 <div>
                   <p className="text-xs text-teal-200 font-bold uppercase tracking-wider mb-1">{t('app.left.address')}</p>
-                  <p className="font-medium text-base leading-relaxed opacity-90" dangerouslySetInnerHTML={{ __html: t('app.left.address.val') }} />
+                  <p className="font-medium text-base leading-relaxed opacity-90">
+                    {t('app.left.address.val').split('\n').map((line, i) => (
+                      <span key={i}>{line}<br /></span>
+                    ))}
+                  </p>
                 </div>
               </motion.a>
             </div>
