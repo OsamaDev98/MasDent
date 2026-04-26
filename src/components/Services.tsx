@@ -132,7 +132,7 @@ export default function Services() {
               exit={{ opacity: 0 }}
               className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm ${isRtl ? 'font-arabic' : 'font-display'}`}
               dir={isRtl ? 'rtl' : 'ltr'}
-              style={{ fontFamily: isRtl ? 'var(--font-cairo), sans-serif' : undefined }}
+              style={{ fontFamily: isRtl ? 'var(--font-cairo), sans-serif' : 'var(--font-geist), sans-serif' }}
               onClick={() => setSelectedService(null)}
             >
               <motion.div

@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { I18nProvider } from '@/providers/I18nProvider';
 import { HtmlAttributeSetter } from '@/components/HtmlAttributeSetter';
-import { inter, cairo } from '@/app/layout';
-
 type Props = {
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
@@ -46,14 +44,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function LangLayout({ children, params }: Props) {
   const { lang } = await params;
   const locale = lang === 'ar' ? 'ar' : 'en';
-  const fontVar = locale === 'ar' ? cairo.variable : inter.variable;
 
   return (
     <>
       <HtmlAttributeSetter
         lang={locale}
         dir={locale === 'ar' ? 'rtl' : 'ltr'}
-        className={`${fontVar} h-full antialiased`}
       />
       {/*
         Material Symbols is loaded via <head> link in the root layout.tsx

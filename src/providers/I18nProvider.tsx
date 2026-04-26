@@ -23,7 +23,7 @@ export function I18nProvider({ children, locale }: I18nProviderProps) {
       i18n.changeLanguage(locale);
     }
     setActiveLang(locale);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
 
   // ── Listen to client-side language changes (instant switch via Navbar) ────────
@@ -41,7 +41,7 @@ export function I18nProvider({ children, locale }: I18nProviderProps) {
     <div
       dir={isAr ? 'rtl' : 'ltr'}
       className={isAr ? 'font-arabic' : 'font-display'}
-      style={{ fontFamily: isAr ? 'var(--font-cairo), sans-serif' : undefined }}
+      style={{ fontFamily: isAr ? 'var(--font-cairo), sans-serif' : 'var(--font-geist), sans-serif' }}
     >
       {children}
     </div>
