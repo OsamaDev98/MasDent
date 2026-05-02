@@ -80,13 +80,13 @@
   "app.left.call": "تحدث إلينا مباشرة",
   "app.left.email": "خدمة العملاء",
   "app.left.address": "موقع العيادة",
-  "app.left.address.val": "123 شارع الأسنان، مجمع الرعاية الطبي<br/>الرياض، المملكة العربية السعودية",
+  "app.left.address.val": "123 شارع الأسنان، مجمع الرعاية الطبي، القاهرة، مصر",
   "app.form.name": "الاسم الكامل",
   "app.form.name.ph": "الاسم كما في الهوية..",
   "app.form.email": "البريد الإلكتروني",
   "app.form.email.ph": "example@mail.com",
   "app.form.phone": "رقم الجوال",
-  "app.form.phone.ph": "05X XXX XXXX",
+  "app.form.phone.ph": "01X XXX XXXX",
   "app.form.date": "تاريخ الزيارة المفضل",
   "app.form.service": "الخدمة المطلوبة",
   "app.form.service.ph": "اختر الخدمة الطبية",
@@ -114,7 +114,7 @@
   "faq.a5": "بالطبع، نستخدم أحدث أجهزة التبييض المصرح بها والتي لا تسبب أذى لطبقة المينا وتطبق تحت إشراف طبيب مختص لضمان سلامتك.",
   "contact.title": "تفضل بزيارتنا",
   "contact.loc.title": "العنوان",
-  "contact.loc.desc": "123 مجمع الأسنان الطبي، تقاطع طريق الملك فهد<br/>الرياض، المملكة العربية السعودية",
+  "contact.loc.desc": "123 مجمع الأسنان الطبي، تقاطع طريق الملك فهد، الرياض، المملكة العربية السعودية",
   "contact.hours.title": "أوقات العمل",
   "contact.hours.d1": "من الأحد إلى الخميس: 9:00 صباحاً - 9:00 مساءً",
   "contact.hours.d2": "السبت: 10:00 صباحاً - 5:00 مساءً",
@@ -195,7 +195,6 @@
   "login.mobile.dashboard": "لوحة التحكم",
   "login.signin.title": "تسجيل الدخول",
   "login.signin.desc": "أدخل بياناتك للوصول إلى لوحة التحكم",
-
   "form.error.name": "يجب أن يتكون الاسم من حرفين على الأقل",
   "form.error.email": "عنوان البريد الإلكتروني غير صالح",
   "form.error.phone": "أدخل رقم هاتف صالح",
@@ -206,37 +205,28 @@
   "form.select_date": "اختر التاريخ",
   "form.select_time": "اختر الوقت",
   "form.confirm": "تأكيد",
-
   "appointments": "المواعيد",
   "appointments_subtitle": "إدارة جميع المواعيد ومتابعتها",
   "new_appointment": "موعد جديد",
-
   "patients": "المرضى",
   "patients_subtitle": "إدارة سجلات المرضى وتاريخهم الطبي",
   "new_patient": "مريض جديد",
-
   "payments": "المدفوعات",
   "payments_subtitle": "متابعة وتسجيل المدفوعات",
-
   "queue": "قائمة الانتظار",
   "queue_subtitle": "إدارة طابور المرضى في الوقت الفعلي",
-
   "analytics": "لوحة التحليلات",
   "analytics_subtitle": "إحصائيات وأداء العيادة",
   "refresh": "تحديث",
-
   "finance": "المالية والفواتير",
   "finance_subtitle": "تتبع المدفوعات وتصدير التقارير",
   "export_csv": "تصدير CSV",
-
   "services": "الخدمات",
   "services_subtitle": "إدارة الخدمات الطبية والأسعار",
   "new_service": "إضافة خدمة",
-
   "staff_mgmt": "إدارة الموظفين",
   "staff_subtitle": "إدارة حسابات الموظفين وصلاحياتهم",
   "new_staff": "موظف جديد",
-
   "settings": "إعدادات النظام",
   "settings_subtitle": "إدارة معلومات العيادة وإعدادات النظام"
 }

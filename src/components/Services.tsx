@@ -101,11 +101,11 @@ export default function Services() {
 
               <div className="relative z-10">
                 {/* Icon */}
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 text-[#0a4f49] group-hover:bg-gradient-to-br group-hover:from-[#0a4f49] group-hover:to-[#14b8a6] group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-teal-900/20 transition-all duration-400">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 text-primary group-hover:bg-gradient-to-br group-hover:from-primary group-hover:to-secondary group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-teal-900/20 transition-all duration-400">
                   <span className="material-symbols-outlined text-2xl">{icon}</span>
                 </div>
 
-                <h3 className="text-slate-900 text-lg font-bold mb-2.5 group-hover:text-[#0a4f49] transition-colors">
+                <h3 className="text-slate-900 text-lg font-bold mb-2.5 group-hover:text-primary transition-colors">
                   {t(`services.${key}.title`)}
                 </h3>
                 <p className="text-slate-500 text-sm leading-relaxed line-clamp-2">
@@ -113,7 +113,7 @@ export default function Services() {
                 </p>
 
                 {/* Learn more arrow */}
-                <div className="mt-5 flex items-center gap-1.5 text-xs font-bold text-slate-300 group-hover:text-[#0a4f49] transition-colors">
+                <div className="mt-5 flex items-center gap-1.5 text-xs font-bold text-slate-300 group-hover:text-primary transition-colors">
                   <span className="uppercase tracking-wider">{t('services.learn_more')}</span>
                   <span className="material-symbols-outlined text-sm translate-x-0 group-hover:translate-x-1 transition-transform rtl:rotate-180">arrow_forward</span>
                 </div>
@@ -143,7 +143,7 @@ export default function Services() {
                 className="bg-white rounded-3xl p-8 md:p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
               >
                 {/* Decorative top gradient */}
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#0a4f49] to-[#14b8a6]" />
+                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary to-secondary" />
 
                 <button
                   onClick={() => setSelectedService(null)}
@@ -157,7 +157,7 @@ export default function Services() {
                   if (!svc) return null;
                   return (
                     <div>
-                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 text-[#0a4f49]">
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 text-primary">
                         <span className="material-symbols-outlined text-3xl">{svc.icon}</span>
                       </div>
                       <h3 className="text-2xl md:text-3xl font-black text-slate-900 mb-4">{t(`services.${svc.key}.title`)}</h3>
@@ -170,7 +170,7 @@ export default function Services() {
                           setSelectedService(null);
                           document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="w-full h-14 rounded-xl bg-gradient-to-r from-[#0a4f49] to-[#0d6b63] hover:from-[#073d38] hover:to-[#0a4f49] text-white font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-teal-900/20 active:scale-[0.98]"
+                        className="w-full h-14 rounded-xl bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary text-white font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-teal-900/20 active:scale-[0.98]"
                       >
                         <span>{t('hero.cta1')}</span>
                         <span className="material-symbols-outlined text-sm rtl:rotate-180">arrow_forward</span>

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { useSettings } from '@/providers/SettingsProvider';
 import HeroImage from "../assets/Hero.jpg";
 
 const STATS = [
@@ -14,6 +15,7 @@ const STATS = [
 export default function Hero() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
+  const { settings } = useSettings();
 
   return (
     <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-20 pb-12 px-4 sm:px-6">
@@ -35,10 +37,10 @@ export default function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.15em] bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 text-[#0a4f49]"
+              className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.15em] bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 text-primary"
             >
-              <span className="w-2 h-2 rounded-full bg-[#0a4f49] animate-pulse" />
-              {isRtl ? 'مرحباً بك في ماس دينت' : 'Welcome to Mas Dent Clinic'}
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              {isRtl ? `مرحباً بك في ${settings?.clinicNameAr || 'ماس دينت'}` : `Welcome to ${settings?.clinicName || 'Mas Dent Clinic'}`}
             </motion.div>
 
             {/* Headline */}
@@ -80,7 +82,7 @@ export default function Hero() {
                 href="#services"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.96 }}
-                className="h-14 px-8 text-sm font-bold tracking-wide rounded-full border-2 border-slate-200 text-slate-700 hover:border-[#0a4f49] hover:text-[#0a4f49] hover:bg-teal-50/50 transition-all flex items-center gap-2.5"
+                className="h-14 px-8 text-sm font-bold tracking-wide rounded-full border-2 border-slate-200 text-slate-700 hover:border-primary hover:text-primary hover:bg-teal-50/50 transition-all flex items-center gap-2.5"
               >
                 <span className="material-symbols-outlined text-[18px]">play_circle</span>
                 {t('hero.cta2')}
@@ -130,8 +132,8 @@ export default function Hero() {
                   className="object-cover"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a4f49]/40 via-[#0a4f49]/10 to-transparent mix-blend-multiply opacity-80" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#0a4f49]/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-primary/10 to-transparent mix-blend-multiply opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent" />
               </div>
 
               {/* Floating badge – experience */}

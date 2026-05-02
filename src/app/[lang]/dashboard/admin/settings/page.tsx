@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -64,6 +64,7 @@ const InputField = ({ label, icon, isAr, error, children }: { label:string; icon
 
 export default function AdminSettingsPage() {
   const params = useParams();
+  const router = useRouter();
   const lang = (params.lang as string) || 'en';
   const isAr = lang === 'ar';
 
@@ -73,7 +74,7 @@ export default function AdminSettingsPage() {
   const [workDays, setWorkDays]   = useState(['Sunday','Monday','Tuesday','Wednesday','Thursday']);
   const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ClinicForm>({
+  const { register, reset, trigger, getValues, watch, setValue, formState: { errors } } = useForm<ClinicForm>({
     resolver: zodResolver(clinicSchema),
     defaultValues: {
       clinicName:'Mas Dent', clinicNameAr:'ماس دينت',
@@ -122,18 +123,62 @@ export default function AdminSettingsPage() {
   useEffect(() => { loadSettings(); }, [loadSettings]);
 
   // ── Save to API ──
-  const onSave = async (data: ClinicForm) => {
+  const handleTabSave = async (tab: 'clinic'|'appearance'|'schedule'|'notifications') => {
+    let fieldsToValidate: any[] = [];
+    let payload: any = {};
+    
+    if (tab === 'clinic') {
+      fieldsToValidate = ['clinicName', 'clinicNameAr', 'phone', 'email', 'address', 'addressAr', 'whatsapp'];
+    } else if (tab === 'schedule') {
+      fieldsToValidate = ['workStart', 'workEnd', 'breakStart', 'breakEnd'];
+    } else if (tab === 'notifications') {
+      fieldsToValidate = []; // Notifications are in state
+    }
+
+    if (fieldsToValidate.length > 0) {
+      const isValid = await trigger(fieldsToValidate as any);
+      if (!isValid) {
+        console.error('Validation failed for fields', fieldsToValidate, errors);
+        toast.error(isAr ? 'يرجى إصلاح أخطاء النموذج' : 'Please fix form errors');
+        return;
+      }
+    }
+
+    const values = getValues();
+    
+    if (tab === 'clinic') {
+      payload = {
+        clinicName: values.clinicName,
+        clinicNameAr: values.clinicNameAr,
+        phone: values.phone,
+        email: values.email,
+        address: values.address,
+        addressAr: values.addressAr,
+        whatsapp: values.whatsapp,
+      };
+    } else if (tab === 'schedule') {
+      payload = {
+        workStart: values.workStart,
+        workEnd: values.workEnd,
+        breakStart: values.breakStart,
+        breakEnd: values.breakEnd,
+        workDays: workDays,
+      };
+    } else if (tab === 'notifications') {
+      payload = {
+        notifications: notifications.reduce<Record<string, boolean>>((acc, n) => {
+          acc[n.key] = n.enabled;
+          return acc;
+        }, {})
+      };
+    }
+
     setSaving(true);
     try {
-      const notifPayload = notifications.reduce<Record<string, boolean>>((acc, n) => {
-        acc[n.key] = n.enabled;
-        return acc;
-      }, {});
-
       const r = await fetch('/api/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, workDays, notifications: notifPayload }),
+        body: JSON.stringify(payload),
       });
 
       if (!r.ok) {
@@ -142,6 +187,7 @@ export default function AdminSettingsPage() {
         return;
       }
       toast.success(isAr ? 'تم حفظ الإعدادات بنجاح ✔' : 'Settings saved successfully!');
+      router.refresh(); // Refresh the page to apply new settings to the layout
     } catch {
       toast.error(isAr ? 'خطأ في الشبكة' : 'Network error');
     } finally {
@@ -189,12 +235,12 @@ export default function AdminSettingsPage() {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit(onSave)}>
-        <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait">
 
-          {/* ── Clinic Info ── */}
-          {activeTab === 'clinic' && (
-            <motion.div key="clinic" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} className="space-y-5">
+        {/* ── Clinic Info ── */}
+        {activeTab === 'clinic' && (
+          <motion.div key="clinic" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}>
+            <form onSubmit={(e) => { e.preventDefault(); handleTabSave('clinic'); }} className="space-y-5">
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md">
@@ -271,12 +317,25 @@ export default function AdminSettingsPage() {
                   ))}
                 </div>
               </div>
-            </motion.div>
-          )}
 
-          {/* ── Schedule ── */}
-          {activeTab === 'schedule' && (
-            <motion.div key="schedule" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} className="space-y-5">
+              {/* Save Button */}
+              <div className="pt-2">
+                <button type="submit" disabled={saving}
+                  className="flex items-center gap-2 px-8 h-12 rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white font-bold text-sm shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-60">
+                  {saving
+                    ? <><span className="material-symbols-outlined animate-spin">progress_activity</span>{isAr?'جارٍ الحفظ...':'Saving...'}</>
+                    : <><span className="material-symbols-outlined text-sm">save</span>{isAr?'حفظ معلومات العيادة':'Save Clinic Info'}</>}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+
+
+        {/* ── Schedule ── */}
+        {activeTab === 'schedule' && (
+          <motion.div key="schedule" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}>
+            <form onSubmit={(e) => { e.preventDefault(); handleTabSave('schedule'); }} className="space-y-5">
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md">
@@ -345,12 +404,24 @@ export default function AdminSettingsPage() {
                 </div>
                 <span className="text-[10px] font-black px-2.5 py-1 rounded-lg border bg-amber-100 border-amber-300 text-amber-700 shrink-0">{isAr?'قريباً':'Soon'}</span>
               </div>
-            </motion.div>
-          )}
 
-          {/* ── Notifications ── */}
-          {activeTab === 'notifications' && (
-            <motion.div key="notifications" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}>
+              {/* Save Button */}
+              <div className="pt-2">
+                <button type="submit" disabled={saving}
+                  className="flex items-center gap-2 px-8 h-12 rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white font-bold text-sm shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-60">
+                  {saving
+                    ? <><span className="material-symbols-outlined animate-spin">progress_activity</span>{isAr?'جارٍ الحفظ...':'Saving...'}</>
+                    : <><span className="material-symbols-outlined text-sm">save</span>{isAr?'حفظ ساعات العمل':'Save Schedule'}</>}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+
+        {/* ── Notifications ── */}
+        {activeTab === 'notifications' && (
+          <motion.div key="notifications" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}>
+            <form onSubmit={(e) => { e.preventDefault(); handleTabSave('notifications'); }} className="space-y-5">
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-50">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md">
@@ -389,20 +460,20 @@ export default function AdminSettingsPage() {
                   </p>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* Save Button */}
-        <div className="mt-6">
-          <button type="submit" disabled={saving}
-            className="flex items-center gap-2 px-8 h-12 rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white font-bold text-sm shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-60">
-            {saving
-              ? <><span className="material-symbols-outlined animate-spin">progress_activity</span>{isAr?'جارٍ الحفظ...':'Saving...'}</>
-              : <><span className="material-symbols-outlined text-sm">save</span>{isAr?'حفظ الإعدادات':'Save Settings'}</>}
-          </button>
-        </div>
-      </form>
+              {/* Save Button */}
+              <div className="pt-2">
+                <button type="submit" disabled={saving}
+                  className="flex items-center gap-2 px-8 h-12 rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white font-bold text-sm shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-60">
+                  {saving
+                    ? <><span className="material-symbols-outlined animate-spin">progress_activity</span>{isAr?'جارٍ الحفظ...':'Saving...'}</>
+                    : <><span className="material-symbols-outlined text-sm">save</span>{isAr?'حفظ الإشعارات':'Save Notifications'}</>}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </DashboardShell>
   );
 }

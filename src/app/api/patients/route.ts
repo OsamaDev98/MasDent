@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     if (q) {
       const safe = escapeRegex(q.slice(0, 100)); // cap + escape
       query.$or = [
-        { name:  { $regex: safe, $options: 'i' } },
+        { name: { $regex: safe, $options: 'i' } },
         { phone: { $regex: safe, $options: 'i' } },
         { email: { $regex: safe, $options: 'i' } },
       ];
@@ -70,14 +70,14 @@ export async function POST(request: NextRequest) {
     const safeImages = Array.isArray(images) ? images.slice(0, 20) : [];
 
     const patient = await Patient.create({
-      name:        name.trim(),
-      phone:       phone.trim(),
-      email:       email ? email.trim().toLowerCase() : '',
+      name: name.trim(),
+      phone: phone.trim(),
+      email: email ? email.trim().toLowerCase() : '',
       dateOfBirth: dateOfBirth || '',
-      gender:      gender || 'male',
-      address:     address || '',
-      notes:       notes ? notes.slice(0, 2000) : '',
-      images:      safeImages,
+      gender: gender || 'male',
+      address: address || '',
+      notes: notes ? notes.slice(0, 2000) : '',
+      images: safeImages,
     });
 
     return NextResponse.json({ patient }, { status: 201 });

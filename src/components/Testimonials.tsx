@@ -75,7 +75,7 @@ export default function Testimonials() {
                 key={i}
                 whileTap={{ scale: 0.9 }}
                 onClick={fn}
-                className="w-11 h-11 rounded-2xl border-2 border-slate-200 text-slate-500 flex items-center justify-center hover:bg-[#0a4f49] hover:text-white hover:border-[#0a4f49] transition-all cursor-pointer"
+                className="w-11 h-11 rounded-2xl border-2 border-slate-200 text-slate-500 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all cursor-pointer"
               >
                 <span className="material-symbols-outlined text-xl">{icon}</span>
               </motion.button>
@@ -100,7 +100,7 @@ export default function Testimonials() {
                   key={`${current}-${idx}`}
                   className={`relative p-8 rounded-3xl flex flex-col transition-all duration-300 overflow-hidden ${
                     idx === 0
-                      ? 'bg-gradient-to-br from-[#0a4f49] to-[#0d6b63] text-white shadow-2xl shadow-teal-900/20'
+                      ? 'bg-gradient-to-br from-primary to-primary-light text-white shadow-2xl shadow-teal-900/20'
                       : 'bg-white border border-slate-100 shadow-sm hover:shadow-lg hover:shadow-teal-900/5'
                   }`}
                 >
@@ -132,7 +132,7 @@ export default function Testimonials() {
                     </div>
                     <div>
                       <h5 className={`font-bold text-sm leading-tight ${idx === 0 ? 'text-white' : 'text-slate-900'}`}>{testimonial.name}</h5>
-                      <p className={`text-xs font-semibold mt-0.5 ${idx === 0 ? 'text-teal-300' : 'text-[#0a4f49]'}`}>{testimonial.role}</p>
+                      <p className={`text-xs font-semibold mt-0.5 ${idx === 0 ? 'text-teal-300' : 'text-primary'}`}>{testimonial.role}</p>
                     </div>
                   </div>
                 </div>
@@ -153,7 +153,7 @@ export default function Testimonials() {
               <button
                 key={i}
                 onClick={() => { setDir(i > current ? 1 : -1); setCurrent(i); }}
-                className={`transition-all duration-300 rounded-full ${i === current ? 'w-6 h-2 bg-[#0a4f49]' : 'w-2 h-2 bg-slate-300 hover:bg-slate-400'}`}
+                className={`transition-all duration-300 rounded-full ${i === current ? 'w-6 h-2 bg-primary' : 'w-2 h-2 bg-slate-300 hover:bg-slate-400'}`}
               />
             ))}
           </div>

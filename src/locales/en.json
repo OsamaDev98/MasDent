@@ -84,13 +84,13 @@
   "app.left.call": "Call Us Directly",
   "app.left.email": "Email Support",
   "app.left.address": "Clinic Address",
-  "app.left.address.val": "123 Dental Street, Suite 400<br/>New York, NY 10001",
+  "app.left.address.val": "123 Dental Street, Suite 400 Cairo, Egypt",
   "app.form.name": "Full Name",
   "app.form.name.ph": "John Doe",
   "app.form.email": "Email Address",
   "app.form.email.ph": "john@example.com",
   "app.form.phone": "Phone Number",
-  "app.form.phone.ph": "(555) 123-4567",
+  "app.form.phone.ph": "01X XXX XXXX",
   "app.form.date": "Preferred Date",
   "app.form.service": "Service Required",
   "app.form.service.ph": "Select a Service",
@@ -118,7 +118,7 @@
   "faq.a5": "Absolutely. Our professional whitening treatments are safe, effective, and performed under expert supervision.",
   "contact.title": "Visit Our Clinic",
   "contact.loc.title": "Our Location",
-  "contact.loc.desc": "123 Dental Plaza, Medical District<br/>Beverly Hills, CA 90210",
+  "contact.loc.desc": "123 Dental Plaza, Medical District Beverly Hills, CA 90210",
   "contact.hours.title": "Working Hours",
   "contact.hours.d1": "Mon - Fri: 8:00 AM - 7:00 PM",
   "contact.hours.d2": "Saturday: 9:00 AM - 4:00 PM",
@@ -199,7 +199,6 @@
   "login.mobile.dashboard": "Dashboard",
   "login.signin.title": "Sign in",
   "login.signin.desc": "Enter your credentials to access the dashboard",
-
   "form.error.name": "Name must be at least 2 characters",
   "form.error.email": "Invalid email address",
   "form.error.phone": "Enter a valid phone number",
@@ -210,37 +209,28 @@
   "form.select_date": "Select Date",
   "form.select_time": "Select Time",
   "form.confirm": "Confirm",
-
   "appointments": "Appointments",
   "appointments_subtitle": "Manage and track all patient appointments",
   "new_appointment": "New Appointment",
-
   "patients": "Patients",
   "patients_subtitle": "Manage patient records and history",
   "new_patient": "New Patient",
-
   "payments": "Payments",
   "payments_subtitle": "Track and record appointment payments",
-
   "queue": "Queue",
   "queue_subtitle": "Manage today's patient queue in real time",
-
   "analytics": "Analytics Overview",
   "analytics_subtitle": "Clinic performance and insights",
   "refresh": "Refresh",
-
   "finance": "Billing & Finance",
   "finance_subtitle": "Track payments and export reports",
   "export_csv": "Export CSV",
-
   "services": "Services",
   "services_subtitle": "Manage dental service offerings and pricing",
   "new_service": "New Service",
-
   "staff_mgmt": "Staff Management",
   "staff_subtitle": "Manage staff accounts and roles",
   "new_staff": "New Staff Member",
-
   "settings": "System Settings",
   "settings_subtitle": "Manage clinic information and system configuration"
 }

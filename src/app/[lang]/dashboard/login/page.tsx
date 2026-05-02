@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useSettings } from '@/providers/SettingsProvider';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const isAr = lang === 'ar';
+  const { settings } = useSettings();
 
   const loginSchema = z.object({
     username: z.string().min(1, 'Username is required'),
@@ -77,7 +79,9 @@ export default function LoginPage() {
               <span className="material-symbols-outlined text-white text-2xl">dentistry</span>
             </div>
             <div>
-              <p className="text-white font-black text-xl tracking-tight">{t('login.brand')}</p>
+              <p className="text-white font-black text-xl tracking-tight">
+                {isAr ? settings?.clinicNameAr || 'ماس دينت' : settings?.clinicName || 'Mas Dent'}
+              </p>
               <p className="text-white/50 text-[10px] font-semibold uppercase tracking-widest">{t('login.clinic')}</p>
             </div>
           </motion.div>
@@ -126,7 +130,7 @@ export default function LoginPage() {
             transition={{ delay: 0.8 }}
             className="text-white/30 text-xs font-medium"
           >
-            {t('login.copy')}
+            © {new Date().getFullYear()} {isAr ? settings?.clinicNameAr || 'ماس دينت' : settings?.clinicName || 'Mas Dent'}
           </motion.div>
         </div>
       </div>
@@ -151,7 +155,9 @@ export default function LoginPage() {
               <span className="material-symbols-outlined text-white text-xl">dentistry</span>
             </div>
             <div>
-              <p className="font-black text-slate-900">{t('login.mobile.brand')}</p>
+              <p className="font-black text-slate-900">
+                {isAr ? settings?.clinicNameAr || 'ماس دينت' : settings?.clinicName || 'Mas Dent'}
+              </p>
               <p className="text-slate-400 text-xs uppercase tracking-widest font-semibold">{t('login.mobile.dashboard')}</p>
             </div>
           </div>

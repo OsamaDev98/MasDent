@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { useSettings } from '@/providers/SettingsProvider';
 import HeadImage from "../assets/Head.jpg"
 
 const WHY_ITEMS = [
@@ -15,6 +16,7 @@ const WHY_ITEMS = [
 export default function WhyChooseUs() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
+  const { settings } = useSettings();
 
   return (
     <section className="py-24 px-4 relative z-10 overflow-hidden">
@@ -36,14 +38,14 @@ export default function WhyChooseUs() {
           >
             <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl shadow-teal-900/10 ring-1 ring-teal-900/5 aspect-[4/5] max-h-[560px]">
               <Image
-                alt="Happy Patient at Mas Dent"
+                alt={`Happy Patient at ${settings?.clinicName || 'Mas Dent'}`}
                 src={HeadImage}
                 fill
                 sizes="(max-width: 1024px) 100vw, 45vw"
                 className="object-cover"
               />
               {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a4f49]/30 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent" />
             </div>
 
             {/* Floating experience badge */}
@@ -62,7 +64,7 @@ export default function WhyChooseUs() {
               transition={{ duration: 3.5, repeat: Infinity, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
               className={`absolute top-6 ${isRtl ? '-left-4' : '-right-4'} glass-card rounded-2xl px-5 py-3.5 shadow-xl shadow-slate-900/10 hidden md:flex items-center gap-3`}
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0a4f49] to-[#14b8a6] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-white text-[17px]">groups</span>
               </div>
               <div>
@@ -106,11 +108,11 @@ export default function WhyChooseUs() {
                   transition={{ duration: 0.5, delay: i * 0.08 }}
                   className="group flex gap-5 p-5 rounded-2xl bg-white border border-slate-100 hover:border-teal-100 hover:shadow-lg hover:shadow-teal-900/5 transition-all duration-300"
                 >
-                  <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-teal-50 border border-teal-100 text-[#0a4f49] group-hover:bg-gradient-to-br group-hover:from-[#0a4f49] group-hover:to-[#14b8a6] group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-teal-900/20 transition-all duration-300">
+                  <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-teal-50 border border-teal-100 text-primary group-hover:bg-gradient-to-br group-hover:from-primary group-hover:to-secondary group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-teal-900/20 transition-all duration-300">
                     <span className="material-symbols-outlined text-xl">{icon}</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 mb-1.5 text-base group-hover:text-[#0a4f49] transition-colors">
+                    <h4 className="font-bold text-slate-900 mb-1.5 text-base group-hover:text-primary transition-colors">
                       {t(`why.${key}.title`)}
                     </h4>
                     <p className="text-slate-500 text-sm leading-relaxed">{t(`why.${key}.desc`)}</p>

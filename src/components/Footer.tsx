@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { useSettings } from '@/providers/SettingsProvider';
 
 const SOCIAL_ICONS = [
   { icon: 'social_leaderboard', label: 'Facebook' },
@@ -14,6 +15,7 @@ export default function Footer() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const isAr = locale === 'ar';
+  const { settings } = useSettings();
 
   return (
     <footer className="relative z-10 overflow-hidden" id="contact">
@@ -36,7 +38,7 @@ export default function Footer() {
                 </div>
                 <div className="leading-none">
                   <p className="text-white font-black text-base tracking-tight">
-                    {isAr ? 'ماس دينت' : 'Mas Dent'}
+                    {isAr ? settings?.clinicNameAr || 'ماس دينت' : settings?.clinicName || 'Mas Dent'}
                   </p>
                   <p className="text-teal-400/60 text-[10px] font-bold uppercase tracking-widest mt-0.5">
                     {isAr ? 'عيادة متخصصة' : 'Dental Clinic'}
@@ -96,17 +98,24 @@ export default function Footer() {
             >
               <h4 className="text-white font-bold mb-5 text-sm uppercase tracking-wider">{t('contact.hours.title')}</h4>
               <ul className="space-y-3 text-sm">
-                {['d1', 'd2', 'd3'].map((day, i) => {
-                  const raw = t(`contact.hours.${day}`);
-                  const [label, ...rest] = raw.split(': ');
-                  const time = rest.join(': ');
-                  return (
-                    <li key={day} className="flex justify-between gap-4">
-                      <span>{label}</span>
-                      <span className={`font-semibold ${i === 2 ? 'text-teal-400' : 'text-white'}`}>{time}</span>
-                    </li>
-                  );
-                })}
+                {settings?.workDays && settings.workDays.length > 0 && (
+                  <li className="flex justify-between gap-4">
+                    <span className="text-slate-400">{isAr ? 'أيام العمل' : 'Work Days'}</span>
+                    <span className="font-semibold text-white">
+                      {isAr
+                        ? `${settings.workDays[0]} - ${settings.workDays[settings.workDays.length - 1]}`
+                        : `${settings.workDays[0].slice(0, 3)} - ${settings.workDays[settings.workDays.length - 1].slice(0, 3)}`}
+                    </span>
+                  </li>
+                )}
+                {settings?.workStart && settings?.workEnd && (
+                  <li className="flex justify-between gap-4">
+                    <span className="text-slate-400">{isAr ? 'ساعات العمل' : 'Hours'}</span>
+                    <span className="font-semibold text-white">
+                      {settings.workStart} - {settings.workEnd}
+                    </span>
+                  </li>
+                )}
               </ul>
             </motion.div>
 
@@ -120,24 +129,20 @@ export default function Footer() {
               <h4 className="text-white font-bold mb-5 text-sm uppercase tracking-wider">{t('contact.contact.title')}</h4>
               <ul className="space-y-4">
                 {[
-                  { icon: 'call', key: 'd1', href: 'tel:+15559990000' },
-                  { icon: 'mail', key: 'd2', href: 'mailto:billing@masdent.com' },
-                ].map(({ icon, key, href }) => {
-                  const raw = t(`contact.contact.${key}`);
-                  const [label, ...rest] = raw.split(': ');
-                  const value = rest.join(': ');
-                  return (
-                    <li key={key} className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-teal-900/60 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="material-symbols-outlined text-teal-400 text-[16px]">{icon}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-0.5">{label}</span>
-                        <a href={href} className="text-sm text-slate-300 hover:text-teal-400 transition-colors font-medium">{value}</a>
-                      </div>
-                    </li>
-                  );
-                })}
+                  { icon: 'call', key: 'phone', href: `tel:${settings?.phone || '+15559990000'}`, value: settings?.phone || '+1 (555) 999-0000', label: isAr ? 'هاتف' : 'Phone' },
+                  { icon: 'mail', key: 'email', href: `mailto:${settings?.email || 'billing@masdent.com'}`, value: settings?.email || 'billing@masdent.com', label: isAr ? 'البريد' : 'Email' },
+                  { icon: 'location_on', key: 'address', href: '#', value: (isAr ? settings?.addressAr : settings?.address) || 'Egypt, SA', label: isAr ? 'العنوان' : 'Address' },
+                ].map(({ icon, key, href, value, label }) => (
+                  <li key={key} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-teal-900/60 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="material-symbols-outlined text-teal-400 text-[16px]">{icon}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-0.5">{label}</span>
+                      <a href={href} className="text-sm text-slate-300 hover:text-teal-400 transition-colors font-medium break-all">{value}</a>
+                    </div>
+                  </li>
+                ))}
               </ul>
             </motion.div>
           </div>

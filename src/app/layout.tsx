@@ -14,9 +14,15 @@ export const cairo = Cairo({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Mas Dent",
-};
+import { getSettings } from '@/lib/settings';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  
+  return {
+    title: settings?.clinicName || "Mas Dent",
+  };
+}
 
 export default function RootLayout({
   children,

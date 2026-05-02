@@ -87,15 +87,15 @@ export default function Team() {
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a4f49]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
 
                 {/* Hover action */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                   <div className="flex gap-2">
-                    <button className="w-9 h-9 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center text-[#0a4f49] hover:bg-[#0a4f49] hover:text-white transition-all shadow-lg">
+                    <button className="w-9 h-9 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-lg">
                       <span className="material-symbols-outlined text-[16px]">call</span>
                     </button>
-                    <button className="w-9 h-9 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center text-[#0a4f49] hover:bg-[#0a4f49] hover:text-white transition-all shadow-lg">
+                    <button className="w-9 h-9 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-lg">
                       <span className="material-symbols-outlined text-[16px]">mail</span>
                     </button>
                   </div>
@@ -104,10 +104,10 @@ export default function Team() {
 
               {/* Info */}
               <div className="p-6">
-                <h4 className="text-slate-900 text-base font-bold group-hover:text-[#0a4f49] transition-colors mb-1">
+                <h4 className="text-slate-900 text-base font-bold group-hover:text-primary transition-colors mb-1">
                   {t(`team.${key}.name`)}
                 </h4>
-                <p className="text-[#0a4f49] text-xs font-bold uppercase tracking-wider mb-3">{t(`team.${key}.role`)}</p>
+                <p className="text-primary text-xs font-bold uppercase tracking-wider mb-3">{t(`team.${key}.role`)}</p>
                 <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">{t(`team.${key}.desc`)}</p>
 
                 {/* Divider + rating */}

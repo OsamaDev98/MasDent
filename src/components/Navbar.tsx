@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { useSettings } from '@/providers/SettingsProvider';
+
 const NAV_ITEMS = ['home', 'services', 'team', 'contact'] as const;
 
 export default function Navbar() {
@@ -12,6 +14,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { t, i18n } = useTranslation();
   const params = useParams();
+  const { settings } = useSettings();
 
   // Derive lang from i18n (instant) rather than URL param
   const lang = (i18n.language as string) || (params?.lang as string) || 'en';
@@ -62,14 +65,14 @@ export default function Navbar() {
             <motion.div
               whileHover={{ rotate: 15, scale: 1.08 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-              className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-[#0a4f49] to-[#14b8a6] flex items-center justify-center shadow-lg shadow-teal-900/20"
+              className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-teal-900/20"
             >
               <span className="material-symbols-outlined text-[22px] text-white font-bold">dentistry</span>
               <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             </motion.div>
             <div className="leading-none">
               <p className="text-base font-black tracking-tight text-gradient">
-                {isAr ? 'ماس دينت' : 'Mas Dent'}
+                {isAr ? settings?.clinicNameAr || 'ماس دينت' : settings?.clinicName || 'Mas Dent'}
               </p>
               <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 mt-0.5">
                 {isAr ? 'عيادة متخصصة' : 'Dental Clinic'}
@@ -83,10 +86,10 @@ export default function Navbar() {
               <Link
                 key={item}
                 href={item === 'home' ? `/${lang}` : `#${item}`}
-                className="relative px-4 py-2 text-sm font-semibold text-slate-600 hover:text-[#0a4f49] transition-colors rounded-xl hover:bg-teal-50/80 group"
+                className="relative px-4 py-2 text-sm font-semibold text-slate-600 hover:text-primary transition-colors rounded-xl hover:bg-teal-50/80 group"
               >
                 {t(`nav.${item}`)}
-                <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-[#0a4f49] rounded-full transition-all duration-300 group-hover:w-4" />
+                <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-primary rounded-full transition-all duration-300 group-hover:w-4" />
               </Link>
             ))}
           </nav>
@@ -147,7 +150,7 @@ export default function Navbar() {
                   <Link
                     href={item === 'home' ? `/${lang}` : `#${item}`}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:text-[#0a4f49] hover:bg-teal-50 rounded-xl transition-all"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:text-primary hover:bg-teal-50 rounded-xl transition-all"
                   >
                     <span className="material-symbols-outlined text-[18px] text-slate-400">
                       {item === 'home' ? 'home' : item === 'services' ? 'medical_services' : item === 'team' ? 'groups' : 'call'}

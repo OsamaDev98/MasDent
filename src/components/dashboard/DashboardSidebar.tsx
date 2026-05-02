@@ -2,6 +2,7 @@
 import React from 'react';
 import { useParams, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSettings } from '@/providers/SettingsProvider';
 
 interface NavItem {
   icon: string;
@@ -61,6 +62,7 @@ export default function DashboardSidebar({
   const lang     = (params.lang as string) || 'en';
   const isAr     = lang === 'ar';
   const pathname = usePathname();
+  const { settings } = useSettings();
 
   const sections = role === 'admin' ? adminSections : staffSections;
 
@@ -83,7 +85,7 @@ export default function DashboardSidebar({
           </div>
           <div className="leading-none">
             <p className="font-black text-white text-[15px] tracking-tight">
-              {isAr ? 'ماس دينت' : 'Mas Dent'}
+              {isAr ? settings?.clinicNameAr || 'ماس دينت' : settings?.clinicName || 'Mas Dent'}
             </p>
             <p className="text-white/35 text-[9px] font-bold uppercase tracking-widest mt-0.5">
               {role === 'admin' ? (isAr ? 'لوحة الإدارة' : 'Admin Panel') : (isAr ? 'لوحة الموظف' : 'Staff Portal')}

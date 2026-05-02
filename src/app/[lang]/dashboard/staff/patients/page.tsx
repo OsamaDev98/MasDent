@@ -21,17 +21,17 @@ interface Appointment { _id: string; service: string; date: string; status: stri
 const patientSchema = z.object({
   name: z.string().min(2), phone: z.string().min(7),
   email: z.string().email().optional().or(z.literal('')),
-  dateOfBirth: z.string().optional(), gender: z.enum(['male','female','other']).optional(),
+  dateOfBirth: z.string().optional(), gender: z.enum(['male', 'female', 'other']).optional(),
   address: z.string().optional(), notes: z.string().optional(), images: z.array(z.string()).optional(),
 });
 type PatientForm = z.infer<typeof patientSchema>;
 
-const STATUS_COLORS: Record<string,string> = {
-  confirmed:'text-teal-600', completed:'text-emerald-600',
-  cancelled:'text-red-500', pending:'text-amber-600', 'no-show':'text-slate-400',
+const STATUS_COLORS: Record<string, string> = {
+  confirmed: 'text-teal-600', completed: 'text-emerald-600',
+  cancelled: 'text-red-500', pending: 'text-amber-600', 'no-show': 'text-slate-400',
 };
 
-const fd = (s: string, isAr: boolean) => { try { return new Date(s).toLocaleDateString(isAr?'ar-SA':'en-US',{month:'short',day:'numeric',year:'numeric'}); } catch { return s; } };
+const fd = (s: string, isAr: boolean) => { try { return new Date(s).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return s; } };
 
 export default function StaffPatientsPage() {
   const params = useParams();
@@ -40,13 +40,13 @@ export default function StaffPatientsPage() {
   const { t } = useTranslation();
 
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [search, setSearch]     = useState('');
-  const [loading, setLoading]   = useState(true);
-  const [sel, setSel]           = useState<Patient | null>(null);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sel, setSel] = useState<Patient | null>(null);
   const [selAppts, setSelAppts] = useState<Appointment[]>([]);
-  const [showAdd, setShowAdd]   = useState(false);
-  const [saving, setSaving]     = useState(false);
-  const [editing, setEditing]   = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
 
   const { register, handleSubmit, reset, setValue, watch, getValues, formState: { errors } } = useForm<PatientForm>({ resolver: zodResolver(patientSchema) });
@@ -92,9 +92,9 @@ export default function StaffPatientsPage() {
     try {
       let res;
       if (editing && sel) {
-        res = await fetch(`/api/patients/${sel._id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(finalData) });
+        res = await fetch(`/api/patients/${sel._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(finalData) });
       } else {
-        res = await fetch('/api/patients', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(finalData) });
+        res = await fetch('/api/patients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(finalData) });
       }
       if (!res.ok) { if (res.status === 413) throw new Error(isAr ? 'الصور كبيرة جداً (حد 2MB)' : 'Images too large (max 2MB)'); throw new Error('Failed'); }
       toast.success(isAr ? 'تم حفظ بيانات المريض' : 'Patient saved!');
@@ -107,12 +107,12 @@ export default function StaffPatientsPage() {
     setEditing(true);
     setValue('name', sel.name); setValue('phone', sel.phone);
     setValue('email', sel.email ?? ''); setValue('dateOfBirth', sel.dateOfBirth ?? '');
-    setValue('gender', (sel.gender as 'male'|'female'|'other') ?? 'other');
+    setValue('gender', (sel.gender as 'male' | 'female' | 'other') ?? 'other');
     setValue('notes', sel.notes ?? ''); setValue('images', sel.images ?? []);
     setShowAdd(true);
   };
 
-  const GENDER_ICON: Record<string,string> = { male:'man', female:'woman', other:'person' };
+  const GENDER_ICON: Record<string, string> = { male: 'man', female: 'woman', other: 'person' };
 
   return (
     <DashboardShell
@@ -128,16 +128,16 @@ export default function StaffPatientsPage() {
     >
       {/* Search */}
       <div className="relative mb-5">
-        <span className={`material-symbols-outlined absolute ${isAr?'right-3.5':'left-3.5'} top-1/2 -translate-y-1/2 text-slate-400 text-lg`}>search</span>
+        <span className={`material-symbols-outlined absolute ${isAr ? 'right-3.5' : 'left-3.5'} top-1/2 -translate-y-1/2 text-slate-400 text-lg`}>search</span>
         <Input value={search} onChange={e => setSearch(e.target.value)}
           placeholder={isAr ? 'بحث بالاسم أو الهاتف...' : 'Search by name or phone...'}
-          className={`h-12 rounded-2xl bg-white border-slate-200 shadow-sm text-sm ${isAr?'pr-11':'pl-11'}`} />
+          className={`h-12 rounded-2xl bg-white border-slate-200 shadow-sm text-sm ${isAr ? 'pr-11' : 'pl-11'}`} />
       </div>
 
       {/* Grid */}
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_,i) => <Skeleton key={i} className="h-36 rounded-3xl" />)}
+          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-36 rounded-3xl" />)}
         </div>
       ) : patients.length === 0 ? (
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center py-20">
@@ -151,7 +151,7 @@ export default function StaffPatientsPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
             {patients.map((p, i) => (
-              <motion.div key={p._id} initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay: i*0.04 }}
+              <motion.div key={p._id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
                 onClick={() => openPatient(p)} className="cursor-pointer group">
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-teal-200 transition-all duration-300 p-5 overflow-hidden relative">
                   <div className="absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 opacity-0 group-hover:opacity-10 rounded-full blur-xl transition-opacity" />
@@ -195,16 +195,16 @@ export default function StaffPatientsPage() {
       {/* Patient Detail Modal */}
       <AnimatePresence>
         {sel && !showAdd && (
-          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md"
             onClick={() => setSel(null)}>
-            <motion.div initial={{ scale:0.95, y:16 }} animate={{ scale:1, y:0 }} exit={{ scale:0.95, opacity:0 }}
+            <motion.div initial={{ scale: 0.95, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
               onClick={e => e.stopPropagation()}
               className="bg-white rounded-[2rem] max-w-lg w-full shadow-2xl overflow-hidden max-h-[90vh]">
 
               {/* Header */}
               <div className="relative bg-gradient-to-br from-teal-600 to-teal-800 px-7 pt-6 pb-8 overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage:'radial-gradient(circle at 1px 1px,white 1px,transparent 0)', backgroundSize:'24px 24px' }} />
+                <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px,white 1px,transparent 0)', backgroundSize: '24px 24px' }} />
                 <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-teal-400/20 rounded-full blur-2xl" />
                 <div className="flex items-start justify-between relative z-10">
                   <div className="flex items-center gap-4">
@@ -230,10 +230,10 @@ export default function StaffPatientsPage() {
               <div className="p-7 -mt-4 overflow-y-auto max-h-[60vh]">
                 <div className="grid grid-cols-2 gap-3 mb-5">
                   {[
-                    { label: isAr?'البريد':'Email',           value: sel.email || '—',                                icon:'mail' },
-                    { label: isAr?'تاريخ الميلاد':'Birth',   value: sel.dateOfBirth ? fd(sel.dateOfBirth,isAr) : '—', icon:'cake' },
-                    { label: isAr?'الجنس':'Gender',           value: sel.gender || '—',                               icon:'person' },
-                    { label: isAr?'آخر زيارة':'Last Visit',  value: sel.lastVisit ? fd(sel.lastVisit,isAr) : '—',    icon:'history' },
+                    { label: isAr ? 'البريد' : 'Email', value: sel.email || '—', icon: 'mail' },
+                    { label: isAr ? 'تاريخ الميلاد' : 'Birth', value: sel.dateOfBirth ? fd(sel.dateOfBirth, isAr) : '—', icon: 'cake' },
+                    { label: isAr ? 'الجنس' : 'Gender', value: sel.gender || '—', icon: 'person' },
+                    { label: isAr ? 'آخر زيارة' : 'Last Visit', value: sel.lastVisit ? fd(sel.lastVisit, isAr) : '—', icon: 'history' },
                   ].map(r => (
                     <div key={r.label} className="bg-slate-50 rounded-2xl p-3.5 border border-slate-100 flex items-start gap-3">
                       <span className="material-symbols-outlined text-teal-500/70 text-lg">{r.icon}</span>
@@ -247,14 +247,14 @@ export default function StaffPatientsPage() {
 
                 {sel.notes && (
                   <div className="bg-amber-50 rounded-2xl p-4 mb-5 border border-amber-100">
-                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1.5">{isAr?'ملاحظات':'Notes'}</p>
+                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1.5">{isAr ? 'ملاحظات' : 'Notes'}</p>
                     <p className="text-sm text-amber-900">{sel.notes}</p>
                   </div>
                 )}
 
                 {(sel.images?.length ?? 0) > 0 && (
                   <div className="mb-5">
-                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">{isAr?'الصور':'Images'}</p>
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">{isAr ? 'الصور' : 'Images'}</p>
                     <div className="flex gap-2 overflow-x-auto pb-2">
                       {sel.images!.map((img, i) => (
                         <img key={i} src={img} alt="" onClick={() => setGalleryIndex(i)}
@@ -266,7 +266,7 @@ export default function StaffPatientsPage() {
 
                 {selAppts.length > 0 && (
                   <div>
-                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">{isAr?'سجل المواعيد':'Appointment History'}</p>
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">{isAr ? 'سجل المواعيد' : 'Appointment History'}</p>
                     <div className="space-y-2">
                       {selAppts.map(a => (
                         <div key={a._id} className="flex items-center justify-between bg-slate-50 rounded-2xl px-4 py-2.5 border border-slate-100">
@@ -284,9 +284,9 @@ export default function StaffPatientsPage() {
                 <div className="flex gap-3 mt-5">
                   <a href={`tel:${sel.phone}`}
                     className="flex-1 flex items-center justify-center gap-2 h-11 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-700 hover:bg-slate-100 transition-colors">
-                    <span className="material-symbols-outlined text-sm">call</span>{isAr?'اتصال':'Call'}
+                    <span className="material-symbols-outlined text-sm">call</span>{isAr ? 'اتصال' : 'Call'}
                   </a>
-                  <a href={`https://wa.me/${sel.phone.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
+                  <a href={`https://wa.me/${sel.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
                     className="flex-1 flex items-center justify-center gap-2 h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors shadow-md shadow-emerald-200">
                     <span className="material-symbols-outlined text-sm">chat</span>WhatsApp
                   </a>
@@ -300,21 +300,21 @@ export default function StaffPatientsPage() {
       {/* Add/Edit Modal */}
       <AnimatePresence>
         {showAdd && (
-          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md"
             onClick={() => { setShowAdd(false); setEditing(false); }}>
-            <motion.div initial={{ scale:0.95, y:16 }} animate={{ scale:1, y:0 }} exit={{ scale:0.95, opacity:0 }}
+            <motion.div initial={{ scale: 0.95, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
               onClick={e => e.stopPropagation()}
               className="bg-white rounded-[2rem] max-w-lg w-full shadow-2xl overflow-hidden max-h-[90vh]">
 
               <div className="relative bg-gradient-to-br from-teal-600 to-teal-800 px-7 py-6 overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage:'radial-gradient(circle at 1px 1px,white 1px,transparent 0)', backgroundSize:'24px 24px' }} />
+                <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px,white 1px,transparent 0)', backgroundSize: '24px 24px' }} />
                 <div className="flex items-center justify-between relative z-10">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-white">{editing?'edit':'person_add'}</span>
+                      <span className="material-symbols-outlined text-white">{editing ? 'edit' : 'person_add'}</span>
                     </div>
-                    <h3 className="text-xl font-black text-white">{editing?(isAr?'تعديل المريض':'Edit Patient'):(isAr?'مريض جديد':'New Patient')}</h3>
+                    <h3 className="text-xl font-black text-white">{editing ? (isAr ? 'تعديل المريض' : 'Edit Patient') : (isAr ? 'مريض جديد' : 'New Patient')}</h3>
                   </div>
                   <button onClick={() => { setShowAdd(false); setEditing(false); }} className="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-colors">
                     <span className="material-symbols-outlined text-sm">close</span>
@@ -325,37 +325,37 @@ export default function StaffPatientsPage() {
               <div className="p-7 overflow-y-auto max-h-[65vh]">
                 <form onSubmit={handleSubmit(onSave)} className="space-y-4">
                   {[
-                    { name:'name' as const,        label: isAr?'الاسم الكامل':'Full Name',      type:'text',  icon:'person' },
-                    { name:'phone' as const,       label: isAr?'رقم الهاتف':'Phone',             type:'tel',   icon:'call' },
-                    { name:'email' as const,       label: isAr?'البريد الإلكتروني':'Email',      type:'email', icon:'mail' },
-                    { name:'dateOfBirth' as const, label: isAr?'تاريخ الميلاد':'Date of Birth',  type:'date',  icon:'cake' },
+                    { name: 'name' as const, label: isAr ? 'الاسم الكامل' : 'Full Name', type: 'text', icon: 'person' },
+                    { name: 'phone' as const, label: isAr ? 'رقم الهاتف' : 'Phone', type: 'tel', icon: 'call' },
+                    { name: 'email' as const, label: isAr ? 'البريد الإلكتروني' : 'Email', type: 'email', icon: 'mail' },
+                    { name: 'dateOfBirth' as const, label: isAr ? 'تاريخ الميلاد' : 'Date of Birth', type: 'date', icon: 'cake' },
                   ].map(f => (
                     <div key={f.name}>
                       <Label className="block mb-1.5 text-sm font-bold text-slate-700">{f.label}</Label>
                       <div className="relative">
-                        <span className={`material-symbols-outlined absolute ${isAr?'right-3':'left-3'} top-1/2 -translate-y-1/2 text-slate-400 text-[18px]`}>{f.icon}</span>
-                        <Input type={f.type} {...register(f.name)} className={`h-11 rounded-xl border-slate-200 bg-slate-50 ${isAr?'pr-10':'pl-10'} ${errors[f.name]?'border-red-400':''}`} />
+                        <span className={`material-symbols-outlined absolute ${isAr ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-slate-400 text-[18px]`}>{f.icon}</span>
+                        <Input type={f.type} {...register(f.name)} className={`h-11 rounded-xl border-slate-200 bg-slate-50 ${isAr ? 'pr-10' : 'pl-10'} ${errors[f.name] ? 'border-red-400' : ''}`} />
                       </div>
                     </div>
                   ))}
 
                   <div>
-                    <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'الجنس':'Gender'}</Label>
+                    <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr ? 'الجنس' : 'Gender'}</Label>
                     <select {...register('gender')} className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20">
-                      <option value="other">{isAr?'غير محدد':'Not specified'}</option>
-                      <option value="male">{isAr?'ذكر':'Male'}</option>
-                      <option value="female">{isAr?'أنثى':'Female'}</option>
+                      <option value="other">{isAr ? 'غير محدد' : 'Not specified'}</option>
+                      <option value="male">{isAr ? 'ذكر' : 'Male'}</option>
+                      <option value="female">{isAr ? 'أنثى' : 'Female'}</option>
                     </select>
                   </div>
 
                   <div>
-                    <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'ملاحظات':'Notes'}</Label>
+                    <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr ? 'ملاحظات' : 'Notes'}</Label>
                     <textarea {...register('notes')} rows={3}
                       className="flex w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none" />
                   </div>
 
                   <div>
-                    <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr?'الصور':'Images'}</Label>
+                    <Label className="block mb-1.5 text-sm font-bold text-slate-700">{isAr ? 'الصور' : 'Images'}</Label>
                     <div className="flex flex-wrap gap-3">
                       {(watch('images') || []).map((img, i) => (
                         <div key={i} className="relative group w-20 h-20">
@@ -376,7 +376,7 @@ export default function StaffPatientsPage() {
                   <button type="submit" disabled={saving}
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-60">
                     {saving ? <span className="material-symbols-outlined animate-spin">progress_activity</span>
-                      : <><span className="material-symbols-outlined text-sm">{editing?'save':'person_add'}</span>{editing?(isAr?'حفظ التعديلات':'Save Changes'):(isAr?'إضافة المريض':'Add Patient')}</>}
+                      : <><span className="material-symbols-outlined text-sm">{editing ? 'save' : 'person_add'}</span>{editing ? (isAr ? 'حفظ التعديلات' : 'Save Changes') : (isAr ? 'إضافة المريض' : 'Add Patient')}</>}
                   </button>
                 </form>
               </div>
@@ -388,7 +388,7 @@ export default function StaffPatientsPage() {
       {/* Gallery */}
       <AnimatePresence>
         {galleryIndex !== null && sel?.images && (
-          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4">
             <button onClick={() => setGalleryIndex(null)}
               className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white z-10 transition-colors">
@@ -396,19 +396,19 @@ export default function StaffPatientsPage() {
             </button>
             {sel.images.length > 1 && (<>
               <button className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white z-10 transition-colors"
-                onClick={() => setGalleryIndex(galleryIndex === 0 ? sel.images!.length-1 : galleryIndex-1)}>
+                onClick={() => setGalleryIndex(galleryIndex === 0 ? sel.images!.length - 1 : galleryIndex - 1)}>
                 <span className="material-symbols-outlined text-3xl">chevron_left</span>
               </button>
               <button className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white z-10 transition-colors"
-                onClick={() => setGalleryIndex(galleryIndex === sel.images!.length-1 ? 0 : galleryIndex+1)}>
+                onClick={() => setGalleryIndex(galleryIndex === sel.images!.length - 1 ? 0 : galleryIndex + 1)}>
                 <span className="material-symbols-outlined text-3xl">chevron_right</span>
               </button>
             </>)}
-            <motion.img key={galleryIndex} initial={{ scale:0.9, opacity:0 }} animate={{ scale:1, opacity:1 }}
-              transition={{ type:'spring', stiffness:300, damping:25 }}
+            <motion.img key={galleryIndex} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               src={sel.images[galleryIndex]} alt="" className="max-w-full max-h-[90vh] object-contain select-none rounded-2xl" />
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm font-bold bg-black/50 px-4 py-1.5 rounded-full backdrop-blur-md">
-              {galleryIndex+1} / {sel.images.length}
+              {galleryIndex + 1} / {sel.images.length}
             </div>
           </motion.div>
         )}

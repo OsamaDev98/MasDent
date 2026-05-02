@@ -69,11 +69,11 @@ export default function FAQ() {
                   className="w-full flex items-center justify-between p-6 text-left outline-none group cursor-pointer"
                   onClick={() => toggleFaq(index)}
                 >
-                  <span className={`font-bold text-base transition-colors ${isOpen ? 'text-[#0a4f49]' : 'text-slate-800 group-hover:text-[#0a4f49]'
+                  <span className={`font-bold text-base transition-colors ${isOpen ? 'text-primary' : 'text-slate-800 group-hover:text-primary'
                     }`}>
                     {faq.question}
                   </span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${isOpen ? 'bg-teal-50 text-[#0a4f49]' : 'bg-slate-100 text-slate-400 group-hover:bg-teal-50 group-hover:text-[#0a4f49]'
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${isOpen ? 'bg-teal-50 text-primary' : 'bg-slate-100 text-slate-400 group-hover:bg-teal-50 group-hover:text-primary'
                     }`}>
                     <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
                       }`}>

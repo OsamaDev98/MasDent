@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { emitNewAppointment, type Appointment } from '@/lib/appointments';
+import { useSettings } from '@/providers/SettingsProvider';
 
 const schema = z.object({
   name: z.string().min(2, 'form.error.name'),
@@ -55,6 +56,7 @@ const generateDays = () => {
 export default function AppointmentForm() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
+  const { settings } = useSettings();
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -125,7 +127,7 @@ export default function AppointmentForm() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-80px' }}
-            className="w-full lg:w-[42%] relative p-10 lg:p-16 text-white flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0a4f49] via-[#0d6b63] to-[#073d38]"
+            className="w-full lg:w-[42%] relative p-10 lg:p-16 text-white flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary-light to-primary-dark"
           >
             {/* Decors */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
@@ -146,8 +148,8 @@ export default function AppointmentForm() {
 
             <div className="space-y-6 relative z-10 mt-auto">
               {[
-                { href: 'tel:+15550001234', icon: 'call', label: t('app.left.call'), val: '+1 (555) 000-1234' },
-                { href: 'mailto:care@masdent.com', icon: 'mail', label: t('app.left.email'), val: 'care@masdent.com' },
+                { href: `tel:${settings?.phone || '+15550001234'}`, icon: 'call', label: t('app.left.call'), val: settings?.phone || '+1 (555) 000-1234' },
+                { href: `mailto:${settings?.email || 'care@masdent.com'}`, icon: 'mail', label: t('app.left.email'), val: settings?.email || 'care@masdent.com' },
               ].map(({ href, icon, label, val }) => (
                 <motion.a
                   key={href}
@@ -155,12 +157,12 @@ export default function AppointmentForm() {
                   variants={itemVariant}
                   className="flex items-center gap-5 group cursor-pointer hover:bg-white/10 p-3 -ml-3 rounded-2xl transition-colors"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-white group-hover:text-[#0a4f49] group-hover:shadow-lg transition-all duration-400">
+                  <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-white group-hover:text-primary group-hover:shadow-lg transition-all duration-400">
                     <span className="material-symbols-outlined text-[24px]">{icon}</span>
                   </div>
                   <div>
                     <p className="text-xs text-teal-200 font-bold uppercase tracking-wider mb-1">{label}</p>
-                    <p className="font-bold text-xl">{val}</p>
+                    <p className="font-bold text-xl break-all">{val}</p>
                   </div>
                 </motion.a>
               ))}
@@ -172,13 +174,13 @@ export default function AppointmentForm() {
                 variants={itemVariant}
                 className="flex items-start gap-5 pt-2 group cursor-pointer hover:bg-white/10 p-3 -ml-3 rounded-2xl transition-colors"
               >
-                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0 mt-1 group-hover:bg-white group-hover:text-[#0a4f49] group-hover:shadow-lg transition-all duration-400">
+                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0 mt-1 group-hover:bg-white group-hover:text-primary group-hover:shadow-lg transition-all duration-400">
                   <span className="material-symbols-outlined text-[24px]">location_on</span>
                 </div>
                 <div>
                   <p className="text-xs text-teal-200 font-bold uppercase tracking-wider mb-1">{t('app.left.address')}</p>
-                  <p className="font-medium text-base leading-relaxed opacity-90">
-                    {t('app.left.address.val').split('\n').map((line, i) => (
+                  <p className="font-medium text-base leading-relaxed opacity-90 break-words">
+                    {(isRtl ? settings?.addressAr : settings?.address) || t('app.left.address.val').split('\n').map((line, i) => (
                       <span key={i}>{line}<br /></span>
                     ))}
                   </p>
@@ -228,24 +230,24 @@ export default function AppointmentForm() {
               {/* Name */}
               <div className="relative group">
                 <input {...register('name')} type="text" id="name" className={inputCls(!!errors.name)} placeholder=" " />
-                <label htmlFor="name" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.name')}</label>
-                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">person</span>
+                <label htmlFor="name" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-primary peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.name')}</label>
+                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-primary z-20 transition-colors pointer-events-none">person</span>
                 <FieldError msg={errors.name?.message} />
               </div>
 
               {/* Email */}
               <div className="relative group">
                 <input {...register('email')} type="email" id="email" className={inputCls(!!errors.email)} placeholder=" " />
-                <label htmlFor="email" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.email')}</label>
-                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">mail</span>
+                <label htmlFor="email" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-primary peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.email')}</label>
+                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-primary z-20 transition-colors pointer-events-none">mail</span>
                 <FieldError msg={errors.email?.message} />
               </div>
 
               {/* Phone */}
               <div className="relative group">
                 <input {...register('phone')} type="tel" id="tel" className={inputCls(!!errors.phone)} placeholder=" " />
-                <label htmlFor="tel" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.phone')}</label>
-                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">phone_iphone</span>
+                <label htmlFor="tel" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-primary peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.phone')}</label>
+                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-primary z-20 transition-colors pointer-events-none">phone_iphone</span>
                 <FieldError msg={errors.phone?.message} />
               </div>
 
@@ -258,8 +260,8 @@ export default function AppointmentForm() {
                   className={`${inputCls(!!errors.date)} cursor-pointer caret-transparent`}
                   placeholder=" "
                 />
-                <label htmlFor="date" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.date')}</label>
-                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">event_upcoming</span>
+                <label htmlFor="date" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-primary peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.date')}</label>
+                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-primary z-20 transition-colors pointer-events-none">event_upcoming</span>
                 <FieldError msg={errors.date?.message} />
 
                 {/* DatePicker Dropdown */}
@@ -281,7 +283,7 @@ export default function AppointmentForm() {
                           <span className="material-symbols-outlined text-[20px]">close</span>
                         </button>
                         <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-3 shrink-0 pr-12 rtl:pr-0 rtl:pl-12">
-                          <span className="material-symbols-outlined text-[#0a4f49]">event_upcoming</span>
+                          <span className="material-symbols-outlined text-primary">event_upcoming</span>
                           {step === 'day' ? t('form.select_date') : t('form.select_time')}
                         </h3>
 
@@ -292,7 +294,7 @@ export default function AppointmentForm() {
                                 key={i}
                                 type="button"
                                 onClick={() => { setTempDay(d); setStep('time'); }}
-                                className={`p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1 hover:shadow-md ${tempDay?.toDateString() === d.toDateString() ? 'border-[#0a4f49] bg-teal-50 shadow-sm' : 'border-slate-100 hover:border-teal-200'}`}
+                                className={`p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1 hover:shadow-md ${tempDay?.toDateString() === d.toDateString() ? 'border-primary bg-teal-50 shadow-sm' : 'border-slate-100 hover:border-teal-200'}`}
                               >
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{d.toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', { weekday: 'short' })}</span>
                                 <span className="text-2xl font-black text-slate-800">{d.getDate()}</span>
@@ -307,7 +309,7 @@ export default function AppointmentForm() {
                                 key={i}
                                 type="button"
                                 onClick={() => setTempTime(t)}
-                                className={`p-4 rounded-2xl border-2 transition-all text-center font-bold text-lg hover:shadow-md ${tempTime === t ? 'border-[#0a4f49] bg-teal-50 text-[#0a4f49] shadow-sm' : 'border-slate-100 text-slate-600 hover:border-teal-200'}`}
+                                className={`p-4 rounded-2xl border-2 transition-all text-center font-bold text-lg hover:shadow-md ${tempTime === t ? 'border-primary bg-teal-50 text-primary shadow-sm' : 'border-slate-100 text-slate-600 hover:border-teal-200'}`}
                               >
                                 {t}
                               </button>
@@ -325,7 +327,7 @@ export default function AppointmentForm() {
                             type="button"
                             onClick={() => { handleConfirmDateTime(); }}
                             disabled={step === 'day' || !tempTime}
-                            className="flex-1 h-14 rounded-xl bg-gradient-to-r from-[#0a4f49] to-[#0d6b63] hover:from-[#073d38] hover:to-[#0a4f49] text-white font-bold text-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:pointer-events-none shadow-lg shadow-teal-900/20"
+                            className="flex-1 h-14 rounded-xl bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary text-white font-bold text-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:pointer-events-none shadow-lg shadow-teal-900/20"
                           >
                             {t('form.confirm')}
                           </button>
@@ -342,8 +344,8 @@ export default function AppointmentForm() {
                   <option value="" disabled className="text-slate-400"></option>
                   {Object.entries(SERVICE_MAP).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
-                <label htmlFor="service" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not([value=''])]:text-[10px] peer-[&:not([value=''])]:top-1.5 peer-[&:not([value=''])]:font-black z-20 font-bold pointer-events-none">{t('app.form.service')}</label>
-                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 pointer-events-none">medical_services</span>
+                <label htmlFor="service" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-primary peer-focus:top-1.5 peer-focus:font-black peer-[&:not([value=''])]:text-[10px] peer-[&:not([value=''])]:top-1.5 peer-[&:not([value=''])]:font-black z-20 font-bold pointer-events-none">{t('app.form.service')}</label>
+                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-primary z-20 pointer-events-none">medical_services</span>
                 <span className="material-symbols-outlined absolute ltr:right-4 rtl:left-4 top-[18px] text-slate-400 z-20 pointer-events-none">expand_more</span>
                 <FieldError msg={errors.service?.message} />
               </div>
@@ -351,8 +353,8 @@ export default function AppointmentForm() {
               {/* Notes */}
               <div className="relative group sm:col-span-2">
                 <textarea {...register('notes')} id="notes" className={`${inputCls(false)} resize-none`} placeholder=" " rows={3} />
-                <label htmlFor="notes" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-[#0a4f49] peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.notes')}</label>
-                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-[#0a4f49] z-20 transition-colors pointer-events-none">edit_note</span>
+                <label htmlFor="notes" className="absolute ltr:left-14 rtl:right-14 top-4 text-slate-400 text-sm transition-all duration-300 peer-focus:text-[10px] peer-focus:text-primary peer-focus:top-1.5 peer-focus:font-black peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:font-black z-20 font-bold pointer-events-none">{t('app.form.notes')}</label>
+                <span className="material-symbols-outlined absolute ltr:left-4 rtl:right-4 top-[18px] text-slate-300 group-focus-within:text-primary z-20 transition-colors pointer-events-none">edit_note</span>
               </div>
 
               {/* Submit */}

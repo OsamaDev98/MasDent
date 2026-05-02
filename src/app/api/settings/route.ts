@@ -36,6 +36,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
+import { revalidatePath } from 'next/cache';
+
 // PATCH /api/settings — admin only, update any subset of settings
 export async function PATCH(request: NextRequest) {
   try {
@@ -56,12 +58,20 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    console.log('[PATCH /api/settings] Body received:', body);
+    console.log('[PATCH /api/settings] Update object:', update);
+
     // Upsert: create if it doesn't exist yet
     const settings = await Settings.findOneAndUpdate(
       {},
       { $set: update },
       { new: true, upsert: true, runValidators: true }
     ).lean();
+
+    console.log('[PATCH /api/settings] Saved settings:', settings);
+
+    // Invalidate next.js cache for the layout so the SettingsProvider gets fresh data
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({ settings });
   } catch (e: unknown) {
